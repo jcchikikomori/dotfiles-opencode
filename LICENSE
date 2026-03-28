@@ -1,0 +1,32 @@
+# AI-Restricted MIT License
+
+Copyright (c) 2024 John Cyrill Corsanes
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+**AI-RESTRICTION ADDENDUM:** The above permission to use, copy, modify, and
+distribute the Software is granted **solely to natural persons** and **solely
+for human-directed use**. Notwithstanding the foregoing, no rights are granted
+to use, train, fine-tune, or otherwise leverage the Software, in whole or in
+part, by or for any artificial intelligence (AI), machine learning (ML),
+large language model (LLM), generative AI, or automated system (collectively,
+"Non-Human Systems"). This restriction applies to any use of the Software that
+would enable a Non-Human System to learn from, be trained on, or produce
+outputs derived from the Software or any portion thereof. Derivative works must
+retain this AI-restriction clause.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
