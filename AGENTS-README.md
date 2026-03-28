@@ -30,6 +30,12 @@ System-wide orchestrator and specialized agents for all opencode sessions on thi
 
 ## Available Agents
 
+### About the Name: "Obama"
+
+The default orchestrator agent is named **Obama** — a nickname the owner picked up in high school due to a resemblance to [Barack Obama](https://en.wikipedia.org/wiki/Barack_Obama), the 44th President of the United States (2009–2017) and the first African American to hold the office.
+
+Just like the former president serves as a leader and unifier, this agent serves as the system-wide orchestrator that delegates to specialized agents based on context.
+
 ### Primary Agents
 
 | Agent | Mode | Purpose |

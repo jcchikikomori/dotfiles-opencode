@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - wiki/Getting-Started.md
 - wiki/Agent-Architecture.md
 - CONTRIBUTING.md
+- `bin/dotfiles-opencode-env` wrapper for project-level .env loading
 
 ### Changed
 - Updated repo description on GitHub

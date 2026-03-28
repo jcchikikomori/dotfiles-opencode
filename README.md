@@ -7,32 +7,33 @@
 
 ---
 
-## Quick Start
+## About the Orchestrator
 
-```sh
-# 1. Copy env template
-cp ~/.config/opencode/.env.example ~/.config/opencode/.env
+The default agent is named **Obama** — a nickname the owner picked up in high school due to a resemblance to [Barack Obama](https://en.wikipedia.org/wiki/Barack_Obama). Obama acts as the system-wide orchestrator that routes requests to specialized agents based on project context.
 
-# 2. Fill in your tokens (see Required Tokens below)
-nano ~/.config/opencode/.env
-
-# 3. Enable MCPs in opencode.jsonc by setting "enabled": true
-# Then restart your shell or source ~/.profile
-```
+See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing details.
 
 ---
 
 ## Table of Contents
 
-- [Files](#files)
-- [Architecture](#architecture)
-- [Setup](#setup)
-- [Required Tokens](#required-tokens)
-- [Environment Loading](#environment-loading)
-- [Per-Project Config](#per-project-configuration)
-- [Plugins](#plugins)
-- [Security](#security)
-- [License](#license)
+- [Opencode Configuration](#opencode-configuration)
+  - [About the Orchestrator](#about-the-orchestrator)
+  - [Table of Contents](#table-of-contents)
+  - [Files](#files)
+  - [Architecture](#architecture)
+  - [Setup](#setup)
+  - [Required Tokens](#required-tokens)
+  - [Environment Loading](#environment-loading)
+    - [Global vs Project-Level](#global-vs-project-level)
+    - [How the Wrapper Works](#how-the-wrapper-works)
+    - [Debug Toggle](#debug-toggle)
+    - [Recursion Safety](#recursion-safety)
+  - [Per-Project Configuration](#per-project-configuration)
+    - [Minimal Project Config Example](#minimal-project-config-example)
+    - [opencode-mem Plugin](#opencode-mem-plugin)
+  - [Security](#security)
+  - [License](#license)
 
 ---
 
@@ -80,17 +81,30 @@ For detailed routing tables, see [AGENTS-README.md](AGENTS-README.md).
 
 ## Setup
 
-1. Copy the example env file:
+Clone this repository, then setup this into your system
 
-   ```sh
-   cp ~/.config/opencode/.env.example ~/.config/opencode/.env
-   ```
+```sh
+git clone https://github.com/jcchikikomori/dotfiles-opencode.git
+cd dotfiles-opencode
+mkdir -p ~/.config
+cp -r .config/opencode ~/.config
+mkdir -p ~/.local/bin
+cp bin/dotfiles-opencode-env ~/.local/bin/
 
-2. Edit `~/.config/opencode/.env` and fill in your tokens (see below).
+export PATH="$HOME/.local/bin:PATH"
+```
 
-3. Restart your shell (or `source ~/.profile`) to load the env vars.
+Copy the example env file:
 
-4. Enable MCPs in `opencode.jsonc` by setting `"enabled": true`.
+```sh
+cp ~/.config/opencode/.env.example ~/.config/opencode/.env
+```
+
+Edit `~/.config/opencode/.env` and fill in your tokens (see below).
+
+Restart your shell (or `source ~/.profile`) to load the env vars.
+
+Enable MCPs in `opencode.jsonc` by setting `"enabled": true`.
 
 ---
 
@@ -130,7 +144,8 @@ This happens **per invocation** via a subshell — no persistent shell pollution
 
 ### How the Wrapper Works
 
-The `opencode()` function delegates to `~/.local/bin/org.jcchikikomori.dotfiles/bin/dotfiles-opencode-env`, which:
+The `opencode()` function delegates to `~/.local/bin/dotfiles-opencode-env`, which:
+
 1. Loads `~/.config/opencode/.env`
 2. Walks up from `$PWD` to find nearest `.opencode/.env` and loads it
 3. `exec`s the real `opencode` binary
@@ -138,14 +153,7 @@ The `opencode()` function delegates to `~/.local/bin/org.jcchikikomori.dotfiles/
 ### Debug Toggle
 
 ```sh
-OPENCODE_ENV_DEBUG=1 opencode
-```
-
-Example output:
-```
-[opencode-env] loaded: /home/you/.config/opencode/.env
-[opencode-env] loaded: /home/you/my-project/.opencode/.env
-[opencode-env] exec: /home/you/.local/bin/opencode
+_DOTFILES_OPENCODE_ENV_DEBUG=1 opencode
 ```
 
 ### Recursion Safety
@@ -166,6 +174,7 @@ your-project/
 ```
 
 Opencode merges configs in this order (last wins):
+
 1. `~/.config/opencode/opencode.jsonc` — global
 2. `<project-root>/opencode.jsonc` or `<project-root>/.opencode/opencode.jsonc` — project-level
 

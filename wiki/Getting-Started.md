@@ -52,7 +52,7 @@ Or log out and back in.
 
 ```sh
 opencode --version
-OPENCODE_ENV_DEBUG=1 opencode
+_DOTFILES_OPENCODE_ENV_DEBUG=1 opencode
 ```
 
 ## First-Run Checklist
@@ -74,6 +74,72 @@ stow opencode -t ~/.config -D  # unlink old
 stow opencode -t ~/.config      # re-link new
 ```
 
+---
+
+## Optional: Project-Scoped .env
+
+The wrapper supports **project-level .env files** that override global tokens.
+
+### 1. Set Up the Wrapper
+
+Stow the bin directory so `dotfiles-opencode-env` is in your PATH:
+
+```sh
+stow bin -t ~/.local/bin
+```
+
+Then either:
+- **Option A:** Create an alias in your shell rc:
+  ```sh
+  alias opencode='dotfiles-opencode-env'
+  ```
+- **Option B:** Prepend `~/.local/bin` to PATH and call `dotfiles-opencode-env` directly:
+  ```sh
+  export PATH="$HOME/.local/bin:$PATH"
+  ```
+
+### 2. Create Project .env (Optional)
+
+In any project, create `.opencode/.env` with project-specific overrides:
+
+```sh
+mkdir -p .opencode
+cp ~/.config/opencode/.env.example .opencode/.env
+nano .opencode/.env
+```
+
+**Example overrides:**
+```sh
+# Project-specific tokens
+SONARQUBE_URL=https://sonar.mycompany.com
+SONARQUBE_TOKEN=sqp_xxxxxxxxxxxx
+
+# Or override global tokens
+# GITHUB_PERSONAL_ACCESS_TOKEN=ghp_project_specific_token
+```
+
+Add to your project's `.gitignore`:
+```sh
+echo ".opencode/.env" >> .gitignore
+```
+
+### 3. How It Works
+
+When you run `opencode` (via the wrapper):
+1. Loads `~/.config/opencode/.env` — global tokens
+2. Walks up from `$PWD` to find nearest `.opencode/.env` — project overrides (if exists)
+3. `exec`s the real `opencode` binary
+
+Project .env is optional. If you don't create one, global .env is used.
+
+### Debug
+
+```sh
+_DOTFILES_OPENCODE_ENV_DEBUG=1 opencode
+```
+
+---
+
 ## Troubleshooting
 
 ### opencode not found
@@ -88,7 +154,7 @@ echo $PATH | grep -q ~/.local/bin && echo "OK" || echo "Add to .bashrc/.zshrc: e
 
 Check the debug output:
 ```sh
-OPENCODE_ENV_DEBUG=1 opencode
+_DOTFILES_OPENCODE_ENV_DEBUG=1 opencode
 ```
 
 ### Permission denied on stow
