@@ -1,6 +1,6 @@
 # Opencode Configuration
 
-This directory contains [opencode](https://opencode.ai) configuration files that are stowed to `~/.config/opencode/`.
+> **Part of [jcchikikomori/.dotfiles](https://github.com/jcchikikomori/.dotfiles)** — This is a standalone package containing opencode configuration files that are stowed to `~/.config/opencode/`.
 
 ## Files
 
