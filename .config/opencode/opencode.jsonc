@@ -4,8 +4,7 @@
   "model": "{env:OPENCODE_MODEL}",
   "small_model": "{env:OPENCODE_SMALL_MODEL}",
   "instructions": [
-    "AGENTS.md",
-    "GIT_COMMIT_GUARD.md"
+    "AGENTS.md"
   ],
   "plugin": [
     "envsitter-guard@latest",
@@ -13,7 +12,7 @@
     "opencode-mem",
     "opencode-redactor@0.1.1"
   ],
-  "default_agent": "obama",
+  "default_agent": "orchestrator",
   "permission": {
     "tool": {
       "*": "allow"
@@ -35,6 +34,7 @@
     }
   },
   "provider": {
+    "github-copilot": {},
     "dmr": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "Docker Model Runner",

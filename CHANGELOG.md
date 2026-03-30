@@ -1,12 +1,18 @@
 # Changelog
 
-All notable changes to this opencode configuration package.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+All notable changes to the OpenCode configuration and custom agents for this dotfiles repository.
 
 ## [Unreleased]
 
 ### Added
+
+- **OpenAgentsControl (OAC)** - Pattern-first AI development framework installed to `.opencode/`
+  - 2 main agents: OpenAgent (general), OpenCoder (production)
+  - 11 subagents: ContextScout, TaskManager, CoderAgent, TestEngineer, CodeReviewer, etc.
+  - 9 productivity commands: `/add-context`, `/commit`, `/test`, `/context`, `/optimize`, etc.
+  - 198 context files: core patterns, workflows, standards, external library guides
+  - MVI (Minimal Viable Information) principle for 80% token reduction
+  - Approval gates workflow: Discover → Propose → Approve → Execute → Validate → Ship
 - AI-Restricted MIT License
 - README badges and Quick Start section
 - Table of Contents and architecture diagram
@@ -17,13 +23,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `bin/dotfiles-opencode-env` wrapper for project-level .env loading
 - **Model Configuration section in README** - Documents environment-based model setup
 - **Model Configuration section in Agent Architecture** - Explains why hardcoded models are removed
+- **OH-MY-OPENCODE.md** - Documentation explaining why oh-my-opencode plugins are disabled and recommending Zenox as alternative
+- **Zenox delegation in obama agent** - obama now knows about Zenox agents (explorer, librarian, oracle, ui-planner) for background task delegation
 
 ### Changed
-- Updated repo description on GitHub
-- README restructured with better navigation
+
+- **⚠️ BREAKING: Default agent changed from `obama` to `OpenAgent`** - All OpenCode sessions now use OAC's OpenAgent by default
 - **⚠️ BREAKING: Removed hardcoded model references from agent files** - All agents now use `{env:OPENCODE_MODEL}`
 - **obama.md agent** - Now documents model configuration via environment variables instead of hardcoding GitHub Copilot models
 - **opencode.jsonc** - Uses environment variable interpolation for model configuration
+- **oh-my-opencode-slim.json** - Updated to use `{env:OPENCODE_MODEL}` and `{env:OPENCODE_SMALL_MODEL}` instead of hardcoded GitHub Copilot models
+- **oh-my-opencode.json** - Disabled (renamed to .disabled) due to too many hardcoded, non-existent models (gpt-5.4, gpt-5-mini, etc.)
+
+### Removed
+
+- **Zenox plugin** - Replaced by OpenAgentsControl
+- **obama custom agent** - Replaced by OAC's OpenAgent/OpenCoder
+- **Custom agent routing** - Now using OAC's context-driven workflow
+- **oh-my-opencode-slim** - Removed from plugin list due to orchestrator conflict with custom obama agent architecture
+- **Reason:** This configuration uses custom agents (obama, dotfiles-maintainer, dotfiles-orchestrator) that conflict with oh-my-opencode-slim's orchestrator
+- **Alternative:** Use Zenox for background tasks and parallel agent execution instead
 
 ### Migration Guide
 

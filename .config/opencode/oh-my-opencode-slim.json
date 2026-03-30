@@ -4,35 +4,13 @@
   "presets": {
     "default": {
       "orchestrator": {
-        "model": "github-copilot/claude-sonnet-4.6"
+        "model": "{env:OPENCODE_MODEL}"
       },
       "designer": {
-        "model": "github-copilot/gpt-5"
+        "model": "{env:OPENCODE_MODEL}"
       },
       "librarian": {
-        "model": "github-copilot/gpt-4o"
-      }
-    },
-    "quick": {
-      "orchestrator": {
-        "model": "github-copilot/gpt-4o"
-      },
-      "designer": {
-        "model": "github-copilot/gpt-4o"
-      },
-      "librarian": {
-        "model": "github-copilot/gpt-4o"
-      }
-    },
-    "ultrabrain": {
-      "orchestrator": {
-        "model": "github-copilot/claude-opus-4.6"
-      },
-      "designer": {
-        "model": "github-copilot/claude-opus-4.6"
-      },
-      "librarian": {
-        "model": "github-copilot/claude-opus-4.6"
+        "model": "{env:OPENCODE_SMALL_MODEL}"
       }
     }
   }

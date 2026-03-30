@@ -44,6 +44,7 @@ See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing detai
 | `opencode.jsonc` | Main config: MCPs, provider, permissions |
 | `AGENTS.md` | Global agent instructions |
 | `AGENTS-README.md` | Agent architecture & routing |
+| `OH-MY-OPENCODE.md` | oh-my-opencode-slim plugin documentation |
 | `.env.example` | Template for MCP environment variables |
 | `.env` | **Local-only** (gitignored) — your actual tokens |
 
@@ -105,6 +106,14 @@ Edit `~/.config/opencode/.env` and fill in your tokens (see below).
 Restart your shell (or `source ~/.profile`) to load the env vars.
 
 Enable MCPs in `opencode.jsonc` by setting `"enabled": true`.
+
+### Install Zenox
+
+```sh
+bunx zenox install
+```
+
+This automatically adds `zenox` to the plugin list in `opencode.jsonc`.
 
 ---
 

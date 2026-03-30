@@ -11,6 +11,7 @@ These rules apply across all opencode sessions on this machine.
 ## Docker-First Execution Policy (Mandatory)
 
 For projects with `docker-compose.yml` or `compose.yml`, run **linting, tests, and framework commands in Docker by default**.
+
 - Prefer `docker compose run --rm <service> <command>` over host-local commands.
 - Only use host-local execution when Docker is unavailable or the user explicitly requests local execution.
 
