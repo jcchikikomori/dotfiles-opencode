@@ -4,13 +4,16 @@
   "presets": {
     "default": {
       "orchestrator": {
-        "model": "{env:OPENCODE_MODEL}"
+        "model": "anthropic/claude-sonnet-4.5"
       },
       "designer": {
-        "model": "{env:OPENCODE_MODEL}"
+        "model": "cerebras/zai-glm-4.7"
       },
       "librarian": {
-        "model": "{env:OPENCODE_SMALL_MODEL}"
+        "model": "cerebras/zai-glm-4.7"
+      },
+      "fixer": {
+        "model": "cerebras/zai-glm-4.7"
       }
     }
   }
