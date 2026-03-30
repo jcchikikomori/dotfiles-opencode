@@ -58,6 +58,12 @@
           "name": "qwen2.5-coder:3b"
         }
       }
+    },
+    "amazon-bedrock": {
+      "options": {
+        "region": "{env:AWS_REGION}",
+        "profile": "{env:AWS_PROFILE}"
+      }
     }
   },
   "mcp": {
