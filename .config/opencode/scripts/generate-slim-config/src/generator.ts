@@ -2,6 +2,7 @@ import { detectProviders } from './lib/providers.js';
 import { getAvailableModels, categorizeModels } from './lib/models.js';
 import { generatePresets, generateCouncilConfig } from './lib/presets.js';
 import { writeConfig, printSummary } from './lib/config.js';
+import { selectProvider, confirmConfiguration } from './lib/interactive.js';
 import type { GeneratorOptions } from './types.js';
 
 export async function generateConfig(options: GeneratorOptions): Promise<void> {
@@ -9,7 +10,7 @@ export async function generateConfig(options: GeneratorOptions): Promise<void> {
   
   try {
     // Step 1: Detect providers
-    console.log('  [1/5] Detecting providers...');
+    console.log('  [1/6] Detecting providers...');
     const providers = await detectProviders(options.prefer);
     console.log(`        Found ${providers.all.length} provider(s): ${providers.all.join(', ')}`);
     
@@ -18,7 +19,7 @@ export async function generateConfig(options: GeneratorOptions): Promise<void> {
     }
     
     // Step 2: Get available models
-    console.log('  [2/5] Fetching available models...');
+    console.log('  [2/6] Fetching available models...');
     const models = await getAvailableModels(options.verbose);
     console.log(`        Found ${models.length} models`);
     
@@ -27,7 +28,7 @@ export async function generateConfig(options: GeneratorOptions): Promise<void> {
     }
     
     // Step 3: Categorize models
-    console.log('  [3/5] Categorizing models by provider and tier...');
+    console.log('  [3/6] Categorizing models by provider and tier...');
     const modelsByProvider = categorizeModels(models);
     
     if (options.verbose) {
@@ -37,14 +38,49 @@ export async function generateConfig(options: GeneratorOptions): Promise<void> {
       }
     }
     
-    // Step 4: Generate presets
-    console.log('  [4/5] Generating presets...');
+    // Step 4: Interactive provider selection (if enabled)
+    let preferredProvider = options.prefer;
+    if (options.interactive && !options.prefer) {
+      console.log('  [4/6] Interactive provider selection...');
+      preferredProvider = await selectProvider(providers, modelsByProvider);
+      
+      // Update providers with new preference
+      if (preferredProvider) {
+        providers.priority = [
+          preferredProvider,
+          ...providers.priority.filter(p => p !== preferredProvider),
+        ];
+      }
+    } else {
+      console.log('  [4/6] Using provider preference...');
+      if (preferredProvider) {
+        console.log(`        Preferred: ${preferredProvider}`);
+      } else {
+        console.log(`        Using default priority: ${providers.priority[0]}`);
+      }
+    }
+    
+    // Step 5: Generate presets
+    console.log('  [5/6] Generating presets...');
     const presets = generatePresets(modelsByProvider, providers);
     const councilConfig = generateCouncilConfig(modelsByProvider, providers);
     console.log(`        Generated ${Object.keys(presets).length} preset(s)`);
     
-    // Step 5: Write configuration
-    console.log('  [5/5] Writing configuration...');
+    // Confirm before writing (in interactive mode)
+    if (options.interactive && !options.dryRun) {
+      const confirmed = await confirmConfiguration(
+        Object.keys(presets).length,
+        preferredProvider
+      );
+      
+      if (!confirmed) {
+        console.log('\n✗ Configuration generation cancelled by user');
+        return;
+      }
+    }
+    
+    // Step 6: Write configuration
+    console.log('  [6/6] Writing configuration...');
     await writeConfig(presets, councilConfig, options);
     
     // Print summary

@@ -13,6 +13,7 @@ program
   .option('--reset', 'Force overwrite existing configuration')
   .option('--preset <name>', 'Set default preset', 'default')
   .option('--prefer <provider>', 'Prefer specific provider (e.g., github-copilot, amazon-bedrock)')
+  .option('--interactive', 'Interactively select preferred provider')
   .option('--verbose', 'Show detailed model selection process')
   .action(async (options) => {
     try {

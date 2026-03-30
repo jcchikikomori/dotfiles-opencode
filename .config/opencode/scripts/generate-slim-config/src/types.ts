@@ -86,6 +86,7 @@ export interface GeneratorOptions {
   preset?: string;
   prefer?: string;
   verbose?: boolean;
+  interactive?: boolean;
 }
 
 export interface AgentRequirement {

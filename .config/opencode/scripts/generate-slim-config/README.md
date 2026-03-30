@@ -43,6 +43,9 @@ dotfiles-opencode install-slim-config --preset copilot
 # Prefer specific provider
 dotfiles-opencode install-slim-config --prefer github-copilot
 
+# Interactive provider selection
+dotfiles-opencode install-slim-config --interactive
+
 # Verbose output
 dotfiles-opencode install-slim-config --verbose
 ```
@@ -52,6 +55,48 @@ dotfiles-opencode install-slim-config --verbose
 ```bash
 cd ~/.dotfiles/linux/opencode/.config/opencode/scripts/generate-slim-config
 node dist/index.js [options]
+```
+
+## Interactive Mode
+
+Use `--interactive` flag to interactively select your preferred provider:
+
+```bash
+dotfiles-opencode install-slim-config --interactive
+```
+
+**Interactive flow:**
+1. Shows all available providers with model counts
+2. Displays tier breakdown (High/Medium/Low) for each provider
+3. Allows selection of preferred provider or "No preference"
+4. Shows sample models from selected provider
+5. Confirms selection before proceeding
+6. Generates configuration with selected provider prioritized
+
+**Benefits:**
+- Visual comparison of available providers
+- See model counts before choosing
+- Preview sample models from each provider
+- Easy to restart selection if you change your mind
+- Confirmation step prevents accidental generation
+
+**Example output:**
+```
+[Interactive Mode] Provider Selection
+
+? Select your preferred provider: (Use arrow keys)
+❯ github-copilot - 12 models (H:3 M:4 L:5)
+  amazon-bedrock - 8 models (H:2 M:3 L:3)
+  ollama - 5 models (H:0 M:2 L:3)
+  No preference (use default priority)
+
+  ✓ Selected: github-copilot
+    High-tier models: 3
+    Medium-tier models: 4
+    Low-tier models: 5
+    Sample high-tier: gpt-4o, gpt-4-turbo
+
+? Use github-copilot as preferred provider? (Y/n)
 ```
 
 ## What It Does
