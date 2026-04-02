@@ -6,13 +6,17 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 
 ### Added
 
-- **OpenAgentsControl (OAC)** - Pattern-first AI development framework installed to `.opencode/`
+- **OpenAgentsControl (OAC)** - Pattern-first AI development framework installed to `~/.opencode/`
   - 2 main agents: OpenAgent (general), OpenCoder (production)
   - 11 subagents: ContextScout, TaskManager, CoderAgent, TestEngineer, CodeReviewer, etc.
   - 9 productivity commands: `/add-context`, `/commit`, `/test`, `/context`, `/optimize`, etc.
-  - 198 context files: core patterns, workflows, standards, external library guides
+  - 198+ context files: core patterns, workflows, standards, external library guides
   - MVI (Minimal Viable Information) principle for 80% token reduction
   - Approval gates workflow: Discover → Propose → Approve → Execute → Validate → Ship
+- **Standalone OAC installer** - `bin/install-oac` for repository independence
+  - Install, update, status, verify, and uninstall commands
+  - No dependency on external dotfiles structure
+  - Color-coded output and detailed status reporting
 - AI-Restricted MIT License
 - README badges and Quick Start section
 - Table of Contents and architecture diagram
@@ -28,7 +32,9 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 
 ### Changed
 
-- **⚠️ BREAKING: Default agent changed from `obama` to `OpenAgent`** - All OpenCode sessions now use OAC's OpenAgent by default
+- **⚠️ BREAKING: Default agent changed to `OpenAgent`** - All OpenCode sessions now use OAC's OpenAgent by default
+- **README.md architecture** - Updated to reflect OpenAgentsControl framework instead of custom orchestrator
+- **Setup instructions** - Added OAC installation step with standalone installer
 - **⚠️ BREAKING: Removed hardcoded model references from agent files** - All agents now use `{env:OPENCODE_MODEL}`
 - **obama.md agent** - Now documents model configuration via environment variables instead of hardcoding GitHub Copilot models
 - **opencode.jsonc** - Uses environment variable interpolation for model configuration
@@ -38,8 +44,8 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 ### Removed
 
 - **Zenox plugin** - Replaced by OpenAgentsControl
-- **obama custom agent** - Replaced by OAC's OpenAgent/OpenCoder
-- **Custom agent routing** - Now using OAC's context-driven workflow
+- **"Obama" custom orchestrator branding** - Replaced by OAC's OpenAgent/OpenCoder framework
+- **Custom agent routing** - Now using OAC's context-driven workflow with 11 specialized subagents
 - **oh-my-opencode-slim** - Removed from plugin list due to orchestrator conflict with custom obama agent architecture
 - **Reason:** This configuration uses custom agents (obama, dotfiles-maintainer, dotfiles-orchestrator) that conflict with oh-my-opencode-slim's orchestrator
 - **Alternative:** Use Zenox for background tasks and parallel agent execution instead
@@ -49,12 +55,14 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 If you have existing configurations with hardcoded models:
 
 1. Add to `~/.config/opencode/.env`:
+
    ```bash
    OPENCODE_MODEL=your-provider/your-model
    OPENCODE_SMALL_MODEL=your-provider/your-small-model
    ```
 
 2. Update your `opencode.jsonc`:
+
    ```jsonc
    {
      "model": "{env:OPENCODE_MODEL}",
@@ -63,6 +71,7 @@ If you have existing configurations with hardcoded models:
    ```
 
 3. For AWS Bedrock, also add:
+
    ```bash
    AWS_REGION=your-region
    AWS_PROFILE=your-profile
@@ -75,6 +84,7 @@ See the [Model Configuration Guide](https://github.com/jcchikikomori/.dotfiles/b
 ## [1.0.0] - 2026-03-28
 
 ### Added
+
 - Initial opencode configuration package
 - opencode.jsonc with MCPs, providers, permissions
 - AGENTS.md with global agent instructions

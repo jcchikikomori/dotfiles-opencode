@@ -11,7 +11,7 @@
     "opencode-mem",
     "opencode-redactor@0.1.1"
   ],
-  "default_agent": "orchestrator",
+  "default_agent": "OpenAgent",
   "permission": {
     "tool": {
       "*": "allow"
@@ -34,33 +34,6 @@
   },
   "provider": {
     "github-copilot": {},
-    "dmr": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Docker Model Runner",
-      "options": {
-        "baseURL": "http://localhost:12434/v1"
-      },
-      "models": {
-        "ai/llama3.2:3B-Q4_K_M": {
-          "name": "llama3.2:3B"
-        }
-      }
-    },
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama",
-      "options": {
-        "baseURL": "http://localhost:11434/v1"
-      },
-      "models": {
-        "llama3.2": {
-          "name": "llama3.2"
-        },
-        "qwen2.5-coder:3b": {
-          "name": "qwen2.5-coder:3b"
-        }
-      }
-    },
     "amazon-bedrock": {
       "options": {
         "region": "{env:AWS_REGION}",

@@ -7,23 +7,41 @@
 
 ---
 
-## About the Orchestrator
+## About the Agent Framework
 
-The default agent is named **Obama** — a nickname the owner picked up in high school due to a resemblance to [Barack Obama](https://en.wikipedia.org/wiki/Barack_Obama). Obama acts as the system-wide orchestrator that routes requests to specialized agents based on project context.
+This configuration uses **OpenAgentsControl (OAC)** — a pattern-first AI development framework that provides specialized agents for different development tasks. OAC includes:
 
-See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing details.
+- **OpenAgent** — General purpose agent for exploration and quick tasks
+- **OpenCoder** — Production-focused agent with strict approval gates and quality standards
+- **11 specialized subagents** — ContextScout, TaskManager, CoderAgent, TestEngineer, CodeReviewer, and more
+- **198+ context files** — Core patterns, workflows, standards, and external library guides
+- **9 productivity commands** — `/add-context`, `/commit`, `/test`, `/context`, `/optimize`, etc.
+
+The framework follows an **MVI (Minimal Viable Information)** principle for efficient token usage and implements **approval gates workflow**: Discover → Propose → Approve → Execute → Validate → Ship.
 
 ---
 
 ## Table of Contents
 
 - [Opencode Configuration](#opencode-configuration)
-  - [About the Orchestrator](#about-the-orchestrator)
+  - [About the Agent Framework](#about-the-agent-framework)
   - [Table of Contents](#table-of-contents)
   - [Files](#files)
+    - [Directory Structure](#directory-structure)
   - [Architecture](#architecture)
   - [Setup](#setup)
+    - [1. Clone and Install Configuration](#1-clone-and-install-configuration)
+    - [2. Install OpenAgentsControl (OAC)](#2-install-openagentscontrol-oac)
+    - [3. Configure Environment](#3-configure-environment)
+    - [4. Enable MCPs](#4-enable-mcps)
+    - [5. Start Using OpenAgentsControl](#5-start-using-openagentscontrol)
   - [Required Tokens](#required-tokens)
+  - [Plugins](#plugins)
+  - [Model Configuration](#model-configuration)
+    - [Required Environment Variables](#required-environment-variables)
+    - [Why Environment Variables?](#why-environment-variables)
+    - [Configuration Hierarchy](#configuration-hierarchy)
+    - [Supported Providers](#supported-providers)
   - [Environment Loading](#environment-loading)
     - [Global vs Project-Level](#global-vs-project-level)
     - [How the Wrapper Works](#how-the-wrapper-works)
@@ -32,6 +50,7 @@ See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing detai
   - [Per-Project Configuration](#per-project-configuration)
     - [Minimal Project Config Example](#minimal-project-config-example)
     - [opencode-mem Plugin](#opencode-mem-plugin)
+    - [oh-my-opencode-slim Plugin](#oh-my-opencode-slim-plugin)
   - [Security](#security)
   - [License](#license)
 
@@ -41,12 +60,32 @@ See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing detai
 
 | File | Purpose |
 |------|---------|
-| `opencode.jsonc` | Main config: MCPs, provider, permissions |
+| `opencode.jsonc` | Main config: MCPs, providers, permissions |
 | `AGENTS.md` | Global agent instructions |
-| `AGENTS-README.md` | Agent architecture & routing |
-| `OH-MY-OPENCODE.md` | oh-my-opencode-slim plugin documentation |
 | `.env.example` | Template for MCP environment variables |
 | `.env` | **Local-only** (gitignored) — your actual tokens |
+| `oh-my-opencode-slim.template.json` | Template for oh-my-opencode-slim plugin |
+| `opencode-mem.jsonc` | Configuration for opencode-mem plugin |
+
+### Directory Structure
+
+```text
+.config/opencode/
+├── opencode.jsonc          # Main configuration
+├── AGENTS.md               # Global agent instructions
+├── .env.example            # Environment template
+├── skills/                 # 32 specialized skills
+│   ├── android/
+│   ├── backend/
+│   ├── frontend/
+│   ├── git/
+│   ├── nodejs/
+│   ├── python/
+│   └── ... (and 26 more)
+├── agents/                 # (Reserved for future use)
+├── plugins/                # Plugin configurations
+└── scripts/                # Utility scripts
+```
 
 ---
 
@@ -59,11 +98,10 @@ See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing detai
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     OBAMA (Orchestrator)                        │
+│              OPENAGENTSCONTROL (OAC) FRAMEWORK                  │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │ 1. Detect project type (files, git, imports)              │  │
-│  │ 2. Load relevant skill(s)                                 │  │
-│  │ 3. Route to specialized agent OR answer directly          │  │
+│  │  OpenAgent: General purpose, exploration                  │  │
+│  │  OpenCoder: Production code, approval gates               │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
                                   │
@@ -71,41 +109,87 @@ See [AGENTS-README.md](AGENTS-README.md) for full architecture and routing detai
         │                         │                       │
         ▼                         ▼                       ▼
 ┌───────────────┐         ┌───────────────┐       ┌───────────────┐
-│ SKILLS        │         │ AGENTS        │       │ DIRECT ANSWER │
-│ (16 skills)   │         │ (6 agents)    │       │ (simple info) │
+│ SKILLS        │         │ SUBAGENTS     │       │ CONTEXT FILES │
+│ (32 skills)   │         │ (11 agents)   │       │ (198+ files)  │
+│               │         │               │       │               │
+│ • android     │         │ • ContextScout│       │ • Standards   │
+│ • backend     │         │ • TaskManager │       │ • Workflows   │
+│ • frontend    │         │ • CoderAgent  │       │ • Patterns    │
+│ • git         │         │ • TestEngineer│       │ • Library     │
+│ • nodejs      │         │ • CodeReviewer│       │   Guides      │
+│ • python      │         │ • BatchExecutor│      │               │
+│ • ... (26+)   │         │ • ... (5+)    │       │               │
 └───────────────┘         └───────────────┘       └───────────────┘
 ```
-
-For detailed routing tables, see [AGENTS-README.md](AGENTS-README.md).
 
 ---
 
 ## Setup
 
-Clone this repository, then setup this into your system
+### 1. Clone and Install Configuration
 
 ```sh
 git clone https://github.com/jcchikikomori/dotfiles-opencode.git
 cd dotfiles-opencode
+
+# Copy configuration to ~/.config/opencode
 mkdir -p ~/.config
 cp -r .config/opencode ~/.config
+
+# Install helper scripts
 mkdir -p ~/.local/bin
 cp bin/dotfiles-opencode-env ~/.local/bin/
+chmod +x bin/install-oac
 
-export PATH="$HOME/.local/bin:PATH"
+# Add to PATH if not already
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-Copy the example env file:
+### 2. Install OpenAgentsControl (OAC)
 
 ```sh
-cp ~/.config/opencode/.env.example ~/.config/opencode/.env
+# Install OAC framework (agents, context files, commands)
+./bin/install-oac install
+
+# Verify installation
+./bin/install-oac status
 ```
 
-Edit `~/.config/opencode/.env` and fill in your tokens (see below).
+This installs OAC to `~/.opencode/` with:
+
+- OpenAgent and OpenCoder (main agents)
+- 11 specialized subagents
+- 198+ context files
+- 9 productivity commands
+
+### 3. Configure Environment
+
+```sh
+# Copy the example env file
+cp ~/.config/opencode/.env.example ~/.config/opencode/.env
+
+# Edit and fill in your tokens (see Required Tokens section below)
+nano ~/.config/opencode/.env
+```
 
 Restart your shell (or `source ~/.profile`) to load the env vars.
 
-Enable MCPs in `opencode.jsonc` by setting `"enabled": true`.
+### 4. Enable MCPs
+
+Enable desired MCPs in `~/.config/opencode/opencode.jsonc` by setting `"enabled": true`.
+
+### 5. Start Using OpenAgentsControl
+
+```sh
+# Start with OpenAgent (general purpose)
+opencode --agent OpenAgent
+
+# Or use OpenCoder (production code with approval gates)
+opencode --agent OpenCoder
+
+# Or use default agent (configured in opencode.jsonc)
+opencode
+```
 
 ### Install Zenox
 
@@ -115,18 +199,37 @@ bunx zenox install
 
 This automatically adds `zenox` to the plugin list in `opencode.jsonc`.
 
+## Plugins
+
+This configuration uses the following plugins:
+
+| Plugin | Purpose |
+|--------|---------|
+| `envsitter-guard@latest` | Prevents accidental exposure of secrets in .env files |
+| `oh-my-opencode-slim` | Lightweight skill organization (configured via template) |
+| `@franlol/opencode-md-table-formatter@latest` | Auto-formats markdown tables |
+| `opencode-mem` | Memory/context persistence across sessions |
+| `opencode-redactor@0.1.1` | Redacts sensitive information from outputs |
+| `zenox` | (Optional) Additional plugin support |
+
 ---
 
 ## Required Tokens
 
 | MCP | Required Env Vars | How to Get |
 |-----|-------------------|------------|
-| `github` | `GITHUB_PERSONAL_ACCESS_TOKEN` | [GitHub Settings → Developer settings → PAT](https://github.com/settings/tokens) |
+| `context7` | **None** — public API | Remote MCP at `https://mcp.context7.com/mcp` |
+| `web-forager` | **None** | Local command: `web-forager serve` |
+| `chrome-devtools` | **None** | Local command: `npx -y chrome-devtools-mcp@latest` |
+| `mcp-ocr` | **None** | Local command: `mcp-ocr` |
+| `github-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | [GitHub Settings → Developer settings → PAT](https://github.com/settings/tokens) |
 | `stackoverflow-mcp` | `STACK_EXCHANGE_API_KEY` | [Stack Apps → Register](https://stackapps.com/apps/oauth/register) |
 | `framelink-figma` | `FIGMA_API_KEY` | [Figma Settings → Personal Access Tokens](https://www.figma.com/developers/api#access-tokens) |
 | `atlassian-mcp` | `JIRA_URL`, `JIRA_USERNAME`, `JIRA_API_TOKEN`, `CONFLUENCE_URL`, `CONFLUENCE_USERNAME`, `CONFLUENCE_API_TOKEN` | [Atlassian API Tokens](https://id.atlassian.com/manage-profile/security/api-tokens) |
 | `sonarqube-mcp` | `SONARQUBE_TOKEN`, `SONARQUBE_URL` | Your SonarQube instance → My Account → Security |
 | `buildkite-mcp` | **None** — uses OAuth | Remote MCP at `https://mcp.buildkite.com/mcp`; authenticate via OAuth browser flow when first enabled |
+
+> **Note:** MCPs marked as enabled by default: `context7`, `web-forager`, `chrome-devtools`, `mcp-ocr`. Others require configuration and enabling in `opencode.jsonc`.
 
 ---
 
@@ -155,9 +258,9 @@ AWS_PROFILE=your-aws-profile
 
 ### Why Environment Variables?
 
-✅ **Multi-environment support** - Switch between work (AWS Bedrock) and personal (GitHub Copilot) projects  
-✅ **Subagent compatibility** - Subagents inherit model config correctly  
-✅ **Provider flexibility** - Change providers without editing config files  
+✅ **Multi-environment support** - Switch between work (AWS Bedrock) and personal (GitHub Copilot) projects
+✅ **Subagent compatibility** - Subagents inherit model config correctly
+✅ **Provider flexibility** - Change providers without editing config files
 ✅ **No hardcoded models** - Same config works across all machines
 
 ### Configuration Hierarchy
@@ -263,14 +366,19 @@ The `opencode-mem` plugin uses environment variables for user profile informatio
 | `OPENCODE_MEM_USER_EMAIL` | Your email for memory attribution |
 | `OPENCODE_MEM_USER_NAME` | Your name for memory attribution |
 
+### oh-my-opencode-slim Plugin
+
+This configuration uses `oh-my-opencode-slim` — a lightweight skill organization plugin. The template is stored in `oh-my-opencode-slim.template.json`. This is distinct from the full `oh-my-opencode` plugin which includes additional features that may not be needed for all use cases.
+
 ---
 
 ## Security
 
-- `.env` is gitignored via `**/.config/**/.env` pattern
+- `.env` is gitignored via `.config/opencode/.env` pattern
 - **Never commit tokens** to git
 - Use separate tokens per machine if possible (easier to revoke)
-- Take control of your own configuration — avoid unnecessary plugins like `oh-my-opencode`
+- Plugins like `envsitter-guard` and `opencode-redactor` help prevent accidental secret exposure
+- The `oh-my-opencode-slim` plugin provides lightweight skill organization without unnecessary dependencies
 
 ---
 
