@@ -60,9 +60,10 @@ docker compose run --rm <container_name> <command>
 - **Limited scope:** Only changes for the ticket/story (no unrelated refactoring).
 - **Short description** or dot points explaining the changes.
 
-## Database Best Practices
+## Database Practices (Mandatory)
 
 - Avoid **N+1 queries**.
+- AVOID DROPPING or RESETTING the LOCAL DATABASE unless user told you so.
 - Add **indexes** for columns referenced in queries.
 - Use **soft delete** for deletions.
 
