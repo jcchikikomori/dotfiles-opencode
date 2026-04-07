@@ -382,6 +382,43 @@ This configuration uses `oh-my-opencode-slim` — a lightweight skill organizati
 
 ---
 
+## Binary Tools
+
+This package includes management scripts installed to `~/.local/bin/org.jcchikikomori.dotfiles.opencode/bin/`:
+
+### `dotfiles-opencode`
+Main management script for OpenCode configuration:
+- `dotfiles-opencode install` — Install opencode binary
+- `dotfiles-opencode install-mcps` — Install MCP dependencies from registry
+- `dotfiles-opencode uninstall` — Remove opencode
+- `dotfiles-opencode upgrade` — Upgrade to latest version
+
+**Environment Variables**: This script automatically sources `~/.profile.local` to load MCP tokens (GITHUB_PERSONAL_ACCESS_TOKEN, STACK_EXCHANGE_API_KEY, etc.)
+
+### `dotfiles-opencode-env`
+Environment configuration helper:
+- Sets up shell environment for opencode
+- Configures PATH and required environment variables
+
+### `dotfiles-opencode-wizard`
+Interactive setup wizard:
+- Guides through initial configuration
+- Helps select model providers and configure tokens
+- Sets up project-specific settings
+
+### Environment Variable Loading
+
+All scripts source `~/.profile.local` for MCP and AI-related environment variables. Add your tokens there:
+
+```bash
+# ~/.profile.local
+export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_xxx"
+export STACK_EXCHANGE_API_KEY="your_key"
+export FIGMA_API_KEY="figd_xxx"
+```
+
+---
+
 ## License
 
 Copyright (c) 2026 John Cyrill Corsanes
