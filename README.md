@@ -384,10 +384,12 @@ This configuration uses `oh-my-opencode-slim` — a lightweight skill organizati
 
 ## Binary Tools
 
-This package includes management scripts installed to `~/.local/bin/org.jcchikikomori.dotfiles.opencode/bin/`:
+This package includes management scripts installed to `~/.local/bin/org.jcchikikomori.agentic.opencode/bin/`:
 
 ### `dotfiles-opencode`
+
 Main management script for OpenCode configuration:
+
 - `dotfiles-opencode install` — Install opencode binary
 - `dotfiles-opencode install-mcps` — Install MCP dependencies from registry
 - `dotfiles-opencode uninstall` — Remove opencode
@@ -396,12 +398,16 @@ Main management script for OpenCode configuration:
 **Environment Variables**: This script automatically sources `~/.profile.local` to load MCP tokens (GITHUB_PERSONAL_ACCESS_TOKEN, STACK_EXCHANGE_API_KEY, etc.)
 
 ### `dotfiles-opencode-env`
+
 Environment configuration helper:
+
 - Sets up shell environment for opencode
 - Configures PATH and required environment variables
 
 ### `dotfiles-opencode-wizard`
+
 Interactive setup wizard:
+
 - Guides through initial configuration
 - Helps select model providers and configure tokens
 - Sets up project-specific settings
