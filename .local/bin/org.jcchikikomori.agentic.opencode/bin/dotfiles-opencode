@@ -13,6 +13,30 @@ fi
 OPENCODE_CONFIG="$HOME/.config/opencode/opencode.jsonc"
 OPENCODE_ENV="$HOME/.config/opencode/.env"
 
+# Determine dotfiles path for shared MCP registry
+if [ -n "${DOTFILES_PATH:-}" ]; then
+    DOTFILES_DIR="$DOTFILES_PATH"
+elif [ -d "$HOME/.dotfiles" ]; then
+    DOTFILES_DIR="$HOME/.dotfiles"
+else
+    DOTFILES_DIR="$(dirname "$(dirname "$(dirname "$(dirname "$(dirname "$(cd -- "$(dirname -- "$0")" && pwd)")")")")")"
+fi
+
+# Check for local mcps.json first, then fall back to shared registry
+# Script is at: linux/opencode/.local/bin/org.jcchikikomori.agentic.opencode/bin/dotfiles-opencode
+# mcps.json is at: linux/opencode/mcps.json (4 levels up from script)
+SCRIPT_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+OPENCODE_DIR="$(dirname "$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")")"
+LOCAL_MCPS_FILE="${OPENCODE_DIR}/mcps.json"
+SHARED_MCPS_FILE="${DOTFILES_DIR}/shared/ai-agents/mcps.json"
+
+# Use local mcps.json if it exists, otherwise use shared
+if [ -f "$LOCAL_MCPS_FILE" ]; then
+    MCPS_FILE="$LOCAL_MCPS_FILE"
+else
+    MCPS_FILE="$SHARED_MCPS_FILE"
+fi
+
 _is_installed() {
     command -v opencode > /dev/null 2>&1
 }
@@ -88,6 +112,58 @@ _env_file_get() {
     grep -m1 "^${key}=" "$envfile" 2>/dev/null | cut -d= -f2- || echo ""
 }
 
+# ─── New JSON-based MCP parser ────────────────────────────────────────────────
+# Parse MCPs from mcps.json format (shared registry)
+# Output format (one line per MCP):
+#   name=<name> type=<installMethod> cmd0=<command/binary> cmd1=<args[0]> env=<KEY1,KEY2,...>
+_parse_mcps_from_json() {
+    local json_file="$1"
+    local tool
+    tool=$(_json_tool)
+
+    [ ! -f "$json_file" ] && return 0
+
+    case "$tool" in
+        jq)
+            jq -r '.mcpServers // {} | to_entries[] |
+              . as $entry |
+              ($entry.value.type // "stdio") as $type |
+              (if $type == "http" then "remote"
+               elif ($entry.value.command // "") != "" then ($entry.value.command // "")
+               else "" end) as $cmd0 |
+              (($entry.value.args // [])[0] // "") as $cmd1 |
+              (($entry.value.env // []) | join(",")) as $env |
+              "name=\($entry.key) type=\($entry.value.installMethod // "pipx") cmd0=\($cmd0) cmd1=\($cmd1) env=\($env)"
+            ' "$json_file" 2>/dev/null || true
+            ;;
+        python3)
+            python3 -c "
+import json
+try:
+    with open('$json_file') as f:
+        data = json.load(f)
+    for name, mcp in (data.get('mcpServers') or {}).items():
+        mcp_type = mcp.get('type', 'stdio')
+        if mcp_type == 'http':
+            cmd0 = 'remote'
+        elif mcp.get('command'):
+            cmd0 = mcp['command']
+        else:
+            cmd0 = ''
+        cmd1 = (mcp.get('args') or [''])[0] if mcp.get('args') else ''
+        env_keys = ','.join(mcp.get('env') or [])
+        install_method = mcp.get('installMethod', 'pipx')
+        print(f'name={name} type={install_method} cmd0={cmd0} cmd1={cmd1} env={env_keys}')
+except Exception:
+    pass
+" 2>/dev/null || true
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
+
 # ─── MCP helpers ──────────────────────────────────────────────────────────────
 
 # Print ENV key status for an MCP (reads from .env file)
@@ -140,10 +216,24 @@ _process_mcp_line() {
         echo "  [skip]    $mcp_name  (remote URL — no install needed)"
         return 0
     fi
+    
+    # http install method — no binary needed
+    if [ "$mcp_type" = "http" ]; then
+        echo "  [skip]    $mcp_name  (HTTP endpoint — no install needed)"
+        _report_env "$mcp_name" "$mcp_env"
+        return 0
+    fi
 
     # No command at all — skip
     if [ -z "$mcp_cmd0" ]; then
         echo "  [skip]    $mcp_name  (no command defined)"
+        return 0
+    fi
+    
+    # cmd0 is "remote" placeholder for HTTP — skip
+    if [ "$mcp_cmd0" = "remote" ]; then
+        echo "  [skip]    $mcp_name  (HTTP endpoint — no install needed)"
+        _report_env "$mcp_name" "$mcp_env"
         return 0
     fi
 
@@ -213,17 +303,10 @@ do_install_mcps() {
         return
     fi
 
-    # Guard: config must exist
-    if [ ! -f "$OPENCODE_CONFIG" ]; then
-        echo "[dotfiles-opencode] Config not found at $OPENCODE_CONFIG"
-        echo "  Run stowme.sh first to symlink the opencode config."
-        return 1
-    fi
-
     # Guard: need a JSON tool
     tool=$(_json_tool)
     if [ "$tool" = "none" ]; then
-        echo "[dotfiles-opencode] Neither jq nor python3 found — cannot parse opencode.jsonc."
+        echo "[dotfiles-opencode] Neither jq nor python3 found — cannot parse configs."
         echo "  Install jq (recommended) or python3, then re-run."
         return 1
     fi
@@ -236,81 +319,104 @@ do_install_mcps() {
         return 1
     fi
 
-    echo ""
-    echo "  Parsing $OPENCODE_CONFIG ..."
-    echo ""
-
-    # Cache global parse output to a temp file so we can:
-    #   (a) iterate without a pipeline subshell, and
-    #   (b) re-use for project-config lookups below.
-    global_parse_tmp=$(mktemp)
-    _parse_mcps "$OPENCODE_CONFIG" > "$global_parse_tmp"
-
-    # ── Phase 1: global config ──────────────────────────────────────────────
-
-    while IFS= read -r line; do
-        [ -z "$line" ] && continue
-        _process_mcp_line "$line"
-    done < "$global_parse_tmp"
-
-    # ── Phase 2: project config ─────────────────────────────────────────────
-
-    project_config="$PWD/.opencode/opencode.jsonc"
-
-    if [ -f "$project_config" ]; then
+    # Determine which config source to use
+    if [ -f "$MCPS_FILE" ]; then
+        # Use new JSON-based registry
         echo ""
-        echo "  Scanning project config: $project_config ..."
+        echo "  Using MCP registry: $MCPS_FILE"
+        echo ""
+        
+        global_parse_tmp=$(mktemp)
+        _parse_mcps_from_json "$MCPS_FILE" > "$global_parse_tmp"
+        
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            _process_mcp_line "$line"
+        done < "$global_parse_tmp"
+        
+        rm -f "$global_parse_tmp"
+    elif [ -f "$OPENCODE_CONFIG" ]; then
+        # Fallback to old opencode.jsonc format
+        echo ""
+        echo "  Parsing $OPENCODE_CONFIG ..."
         echo ""
 
-        project_parse_tmp=$(mktemp)
-        _parse_mcps "$project_config" > "$project_parse_tmp"
+        # Cache global parse output to a temp file so we can:
+        #   (a) iterate without a pipeline subshell, and
+        #   (b) re-use for project-config lookups below.
+        global_parse_tmp=$(mktemp)
+        _parse_mcps "$OPENCODE_CONFIG" > "$global_parse_tmp"
 
-        while IFS= read -r pline; do
-            [ -z "$pline" ] && continue
+        # ── Phase 1: global config ──────────────────────────────────────────────
 
-            # Extract fields from project MCP entry
-            p_name=$(echo "$pline" | sed 's/.*name=\([^ ]*\).*/\1/')
-            p_cmd0=$(echo "$pline" | sed 's/.*cmd0=\([^ ]*\).*/\1/')
-            p_env=$(echo "$pline" | sed 's/.*env=\([^ ]*\).*/\1/')
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            _process_mcp_line "$line"
+        done < "$global_parse_tmp"
 
-            # If cmd0 is empty, look up in global config by name
-            resolved_line="$pline"
-            resolved_cmd0="$p_cmd0"
-            resolved_env="$p_env"
-            if [ -z "$p_cmd0" ]; then
-                global_line=$(grep "^name=${p_name} " "$global_parse_tmp" || true)
-                if [ -z "$global_line" ]; then
-                    echo "  [skip]    $p_name  (no command — define in global config)"
+        # ── Phase 2: project config ─────────────────────────────────────────────
+
+        project_config="$PWD/.opencode/opencode.jsonc"
+
+        if [ -f "$project_config" ]; then
+            echo ""
+            echo "  Scanning project config: $project_config ..."
+            echo ""
+
+            project_parse_tmp=$(mktemp)
+            _parse_mcps "$project_config" > "$project_parse_tmp"
+
+            while IFS= read -r pline; do
+                [ -z "$pline" ] && continue
+
+                # Extract fields from project MCP entry
+                p_name=$(echo "$pline" | sed 's/.*name=\([^ ]*\).*/\1/')
+                p_cmd0=$(echo "$pline" | sed 's/.*cmd0=\([^ ]*\).*/\1/')
+                p_env=$(echo "$pline" | sed 's/.*env=\([^ ]*\).*/\1/')
+
+                # If cmd0 is empty, look up in global config by name
+                resolved_line="$pline"
+                resolved_cmd0="$p_cmd0"
+                resolved_env="$p_env"
+                if [ -z "$p_cmd0" ]; then
+                    global_line=$(grep "^name=${p_name} " "$global_parse_tmp" || true)
+                    if [ -z "$global_line" ]; then
+                        echo "  [skip]    $p_name  (no command — define in global config)"
+                        continue
+                    fi
+                    resolved_line="$global_line"
+                    resolved_cmd0=$(echo "$global_line" | sed 's/.*cmd0=\([^ ]*\).*/\1/')
+                    # Merge env: prefer global env if project env is empty
+                    if [ -z "$resolved_env" ]; then
+                        resolved_env=$(echo "$global_line" | sed 's/.*env=\([^ ]*\).*/\1/')
+                    fi
+                    # Rebuild the line with the merged env so _process_mcp_line sees it
+                    resolved_line=$(echo "$resolved_line" | sed "s/ env=[^ ]*/ env=${resolved_env}/")
+                fi
+
+                # Check if this cmd0 is already covered by the global phase
+                global_has=$(grep " cmd0=${resolved_cmd0} " "$global_parse_tmp" || true)
+                if [ -n "$global_has" ]; then
+                    echo "  [ok]      $p_name  (covered by global config)"
+                    # Still report env so missing keys are surfaced
+                    _report_env "$p_name" "$resolved_env"
                     continue
                 fi
-                resolved_line="$global_line"
-                resolved_cmd0=$(echo "$global_line" | sed 's/.*cmd0=\([^ ]*\).*/\1/')
-                # Merge env: prefer global env if project env is empty
-                if [ -z "$resolved_env" ]; then
-                    resolved_env=$(echo "$global_line" | sed 's/.*env=\([^ ]*\).*/\1/')
-                fi
-                # Rebuild the line with the merged env so _process_mcp_line sees it
-                resolved_line=$(echo "$resolved_line" | sed "s/ env=[^ ]*/ env=${resolved_env}/")
-            fi
 
-            # Check if this cmd0 is already covered by the global phase
-            global_has=$(grep " cmd0=${resolved_cmd0} " "$global_parse_tmp" || true)
-            if [ -n "$global_has" ]; then
-                echo "  [ok]      $p_name  (covered by global config)"
-                # Still report env so missing keys are surfaced
-                _report_env "$p_name" "$resolved_env"
-                continue
-            fi
+                # Truly project-unique MCP — process like global phase
+                _process_mcp_line "$resolved_line"
 
-            # Truly project-unique MCP — process like global phase
-            _process_mcp_line "$resolved_line"
+            done < "$project_parse_tmp"
 
-        done < "$project_parse_tmp"
+            rm -f "$project_parse_tmp"
+        fi
 
-        rm -f "$project_parse_tmp"
+        rm -f "$global_parse_tmp"
+    else
+        echo "[dotfiles-opencode] No MCP config found"
+        echo "  Expected: $MCPS_FILE or $OPENCODE_CONFIG"
+        return 1
     fi
-
-    rm -f "$global_parse_tmp"
 
     echo ""
     echo "[dotfiles-opencode] MCP dependency check complete."
@@ -508,6 +614,46 @@ do_clear_cache() {
     echo ""
 }
 
+# ─── Instruction generator ────────────────────────────────────────────────────
+
+do_generate_instructions() {
+    echo ""
+    echo "[dotfiles-opencode] Generating AGENTS.md from shared instructions..."
+    
+    # Determine dotfiles path
+    if [ -n "${DOTFILES_PATH:-}" ]; then
+        DOTFILES_DIR="$DOTFILES_PATH"
+    elif [ -d "$HOME/.dotfiles" ]; then
+        DOTFILES_DIR="$HOME/.dotfiles"
+    else
+        echo "[dotfiles-opencode] Cannot locate dotfiles directory"
+        echo "  Set DOTFILES_PATH or ensure ~/.dotfiles exists"
+        return 1
+    fi
+    
+    SHARED_INSTRUCTIONS="${DOTFILES_DIR}/shared/ai-agents/instructions/global.md"
+    OUTPUT_FILE="${OPENCODE_CONFIG%/*}/AGENTS.md"
+    
+    # Check if source exists
+    if [ ! -f "$SHARED_INSTRUCTIONS" ]; then
+        echo "[dotfiles-opencode] Shared instructions not found: $SHARED_INSTRUCTIONS"
+        return 1
+    fi
+    
+    # Create config directory if needed
+    mkdir -p "$(dirname "$OUTPUT_FILE")"
+    
+    # Copy instructions
+    cp "$SHARED_INSTRUCTIONS" "$OUTPUT_FILE"
+    
+    echo "  [done] Generated: $OUTPUT_FILE"
+    echo "  Source: $SHARED_INSTRUCTIONS"
+    echo ""
+    echo "  This file is auto-generated. Edit the shared source instead:"
+    echo "  $SHARED_INSTRUCTIONS"
+    echo ""
+}
+
 case "${1:-}" in
     install)             do_install ;;
     update)              do_update ;;
@@ -516,16 +662,18 @@ case "${1:-}" in
     install-slim-config) shift; do_install_slim_config "$@" ;;
     wizard)              dotfiles-opencode-wizard ;;
     clear-cache)         do_clear_cache ;;
+    generate-instructions) do_generate_instructions ;;
     *)
-        echo "Usage: dotfiles-opencode {install|update|install-mcps|install-oac|install-slim-config|wizard|clear-cache}"
-        echo "  install:             Install opencode and all MCP dependencies"
-        echo "  update:              Update opencode to the latest version"
-        echo "  install-mcps:        Install/check MCP dependencies only (re-run anytime)"
-        echo "  install-oac:         Install OpenAgentsControl (OAC) separately"
-        echo "  install-slim-config: Generate oh-my-opencode-slim configuration with auto-detected models"
-        echo "                       Flags: --interactive, --prefer <provider>, --dry-run, --reset, --verbose"
-        echo "  wizard:              Launch the opencode setup wizard"
-        echo "  clear-cache:         Clear OpenCode cache (useful after config/model changes)"
+        echo "Usage: dotfiles-opencode {install|update|install-mcps|install-oac|install-slim-config|wizard|clear-cache|generate-instructions}"
+        echo "  install:               Install opencode and all MCP dependencies"
+        echo "  update:                Update opencode to the latest version"
+        echo "  install-mcps:          Install/check MCP dependencies only (re-run anytime)"
+        echo "  install-oac:           Install OpenAgentsControl (OAC) separately"
+        echo "  install-slim-config:   Generate oh-my-opencode-slim configuration with auto-detected models"
+        echo "                         Flags: --interactive, --prefer <provider>, --dry-run, --reset, --verbose"
+        echo "  wizard:                Launch the opencode setup wizard"
+        echo "  clear-cache:           Clear OpenCode cache (useful after config/model changes)"
+        echo "  generate-instructions: Generate AGENTS.md from shared instructions"
         exit 1
         ;;
 esac

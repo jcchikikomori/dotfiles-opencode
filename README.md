@@ -222,6 +222,8 @@ This configuration uses the following plugins:
 | `web-forager` | **None** | Local command: `web-forager serve` |
 | `chrome-devtools` | **None** | Local command: `npx -y chrome-devtools-mcp@latest` |
 | `mcp-ocr` | **None** | Local command: `mcp-ocr` |
+| `markitdown-mcp` | **None** | Local command: `uvx markitdown-mcp` (requires Python 3.10+) |
+| `markdownlint-mcp` | **None** | Local command: `npx -y markdownlint-mcp` |
 | `github-mcp` | `GITHUB_PERSONAL_ACCESS_TOKEN` | [GitHub Settings → Developer settings → PAT](https://github.com/settings/tokens) |
 | `stackoverflow-mcp` | `STACK_EXCHANGE_API_KEY` | [Stack Apps → Register](https://stackapps.com/apps/oauth/register) |
 | `framelink-figma` | `FIGMA_API_KEY` | [Figma Settings → Personal Access Tokens](https://www.figma.com/developers/api#access-tokens) |
@@ -229,7 +231,11 @@ This configuration uses the following plugins:
 | `sonarqube-mcp` | `SONARQUBE_TOKEN`, `SONARQUBE_URL` | Your SonarQube instance → My Account → Security |
 | `buildkite-mcp` | **None** — uses OAuth | Remote MCP at `https://mcp.buildkite.com/mcp`; authenticate via OAuth browser flow when first enabled |
 
-> **Note:** MCPs marked as enabled by default: `context7`, `web-forager`, `chrome-devtools`, `mcp-ocr`. Others require configuration and enabling in `opencode.jsonc`.
+> **Note:** MCPs marked as enabled by default: `context7`, `web-forager`, `chrome-devtools`, `mcp-ocr`, `markitdown-mcp`, `markdownlint-mcp`. Others require configuration and enabling in `opencode.jsonc`.
+>
+> **New Document Processing MCPs:**
+> - **markitdown-mcp** — Microsoft's converter supporting PDF, Office docs (DOCX, PPTX, XLSX), images with OCR, audio with transcription, HTML, CSV, JSON, XML, ZIP, YouTube URLs, and EPubs to clean Markdown
+> - **markdownlint-mcp** — Markdown linter with auto-fix capability (58% of rules), supports CommonMark + GitHub Flavored Markdown with 522 passing tests
 
 ---
 
@@ -390,10 +396,20 @@ This package includes management scripts installed to `~/.local/bin/org.jcchikik
 
 Main management script for OpenCode configuration:
 
-- `dotfiles-opencode install` — Install opencode binary
-- `dotfiles-opencode install-mcps` — Install MCP dependencies from registry
-- `dotfiles-opencode uninstall` — Remove opencode
-- `dotfiles-opencode upgrade` — Upgrade to latest version
+- `dotfiles-opencode install` — Install opencode binary and all MCP dependencies
+- `dotfiles-opencode install-mcps` — Install/check MCP dependencies from JSON registry
+- `dotfiles-opencode generate-instructions` — Generate AGENTS.md from shared source
+- `dotfiles-opencode install-oac` — Install OpenAgentsControl (OAC) separately
+- `dotfiles-opencode install-slim-config` — Generate oh-my-opencode-slim configuration
+- `dotfiles-opencode wizard` — Launch interactive setup wizard
+- `dotfiles-opencode clear-cache` — Clear OpenCode cache (useful after config changes)
+- `dotfiles-opencode update` — Update opencode to latest version
+
+**Dynamic MCP Loading**: The script now dynamically reads MCPs from:
+1. Local `linux/opencode/mcps.json` (if it exists)
+2. Shared `shared/ai-agents/mcps.json` (fallback)
+
+This allows OpenCode to maintain its own MCP registry while sharing common MCPs with other agents.
 
 **Environment Variables**: This script automatically sources `~/.profile.local` to load MCP tokens (GITHUB_PERSONAL_ACCESS_TOKEN, STACK_EXCHANGE_API_KEY, etc.)
 
