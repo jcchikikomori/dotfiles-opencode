@@ -1,6 +1,6 @@
 # Agent Architecture
 
-How the opencode orchestrator routes requests to specialized agents.
+How opencode handles requests using skills and the built-in default agent.
 
 ## Overview
 
@@ -11,136 +11,82 @@ How the opencode orchestrator routes requests to specialized agents.
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     OBAMA (Orchestrator)                        │
+│                    OPENCODE DEFAULT AGENT                       │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │ 1. Detect project type (files, git, imports)              │  │
-│  │ 2. Load relevant skill(s)                                 │  │
-│  │ 3. Route to specialized agent OR answer directly          │  │
+│  │ 2. Load relevant skill(s) via AGENTS.md routing rules     │  │
+│  │ 3. Answer directly or delegate to skill context           │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
                                   │
-        ┌─────────────────────────┼───────────────────────┐
-        │                         │                       │
-        ▼                         ▼                       ▼
-┌───────────────┐         ┌───────────────┐       ┌───────────────┐
-│ SKILLS        │         │ AGENTS        │       │ DIRECT ANSWER │
-│ (16 skills)   │         │ (6 agents)    │       │ (simple info) │
-└───────────────┘         └───────────────┘       └───────────────┘
+                    ┌─────────────┴──────────────┐
+                    │                            │
+                    ▼                            ▼
+          ┌─────────────────┐          ┌──────────────────┐
+          │ SKILLS (34)     │          │  DIRECT ANSWER   │
+          │ Loaded via      │          │  (simple info)   │
+          │ skill(name="…") │          └──────────────────┘
+          └─────────────────┘
 ```
-
-## Available Agents
-
-### Primary Agents
-
-| Agent | Mode | Purpose |
-|-------|------|---------|
-| **obama** | primary | System-wide orchestrator - routes all requests |
-
-### Specialized Subagents
-
-| Agent | When to Use | Description |
-|-------|-------------|-------------|
-| **rails-migration-agent** | Rails migrations | Create migrations, cascade changes to model/spec/controller/routes/views |
-| **web-audit-agent** | HTML/CSS/JS | Browser compatibility (caniuse), OWASP security audit |
-| **debug-agent** | Production issues | Reproduce bugs, root cause analysis, test case creation |
-| **component-doc-agent** | Understanding code | Explain component purpose, usage, API documentation |
-| **project-onboarding-agent** | Project setup | Structure, setup instructions, architecture overview |
-| **ruby-cocoder** | Complex Ruby tasks | Deep Ruby implementation, refactoring, patterns |
 
 ## Skill Routing
 
-When the orchestrator detects project type, it auto-loads relevant skills:
+Skill loading is instruction-driven via `AGENTS.md`. The agent detects project type and auto-loads skills.
+
+### By Technology
 
 | Project Type | Skills Loaded |
 |--------------|---------------|
 | Ruby on Rails | `ruby`, `ruby-on-rails` |
 | Node.js (React) | `nodejs`, `reactjs` |
 | Node.js (Vue) | `nodejs`, `vuejs` |
+| Node.js (Angular) | `nodejs`, `angularjs` |
 | Python (FastAPI) | `python`, `fastapi` |
-| Python (Django) | `python` |
-| PHP (Laravel) | `php` |
-| Java | `java` |
-| Kotlin/Android | `android-kotlin` |
+| Java (Spring) | `java`, `spring-boot` |
+| Java (Grails) | `java`, `grails` |
+| PHP | `php` |
+| Android | `android` |
 | Any + Security | `owasp` (always first) |
 | Any + Database | relevant SQL skill (always first) |
 
-## Task-to-Agent Routing
+### By Task Type
 
-| Your Request | Delegate To |
-|--------------|-------------|
-| "Add phone_number field to users" | `rails-migration-agent` |
-| "Create new migration for orders table" | `rails-migration-agent` |
-| "Check if CSS :has() selector works" | `web-audit-agent` |
-| "Audit this JavaScript for security issues" | `web-audit-agent` |
-| "Check caniuse for backdrop-filter" | `web-audit-agent` |
-| "Debug the 500 error on production" | `debug-agent` |
-| "Fix the login bug - steps to reproduce..." | `debug-agent` |
-| "Create test cases from ticket" | `debug-agent` |
-| "What does OrderService do?" | `component-doc-agent` |
-| "How do I use the UserCard component?" | `component-doc-agent` |
-| "Explain this model's enums" | `component-doc-agent` |
-| "How do I set up this project?" | `project-onboarding-agent` |
-| "What is the project structure?" | `project-onboarding-agent` |
-| "What does this codebase do?" | `project-onboarding-agent` |
-| "Add stow package for zsh" | `dotfiles-maintainer` |
-| "Propagate changes to all distros" | `dotfiles-maintainer` |
-| "Check for stow conflicts" | `dotfiles-maintainer` |
+| Task | Skill |
+|------|-------|
+| Git operations | `git` |
+| Docker / Kubernetes | `docker` or `kubernetes` |
+| Debugging | `debug` |
+| MCP configuration | `mcp` |
+| Component docs | `component-doc` |
+| Project onboarding | `project-onboarding` |
+| Rails migrations | `rails-migration` |
+| Python validation | `pydantic` |
+| SQLAlchemy ORM | `sqlalchemy` |
 
-## Adding New Agents
+## Available Skills (34)
 
-1. Create agent file: `agents/<name>.md`
-2. Add YAML frontmatter with mode and permissions:
+| Category | Skills |
+|----------|--------|
+| Web/Frontend | `frontend`, `reactjs`, `vuejs`, `angularjs`, `component-doc`, `web-audit` |
+| Backend | `backend`, `nodejs`, `python`, `ruby`, `ruby-on-rails`, `java`, `php`, `spring-boot`, `grails` |
+| Databases | `postgresql`, `mysql-mariadb`, `oracle-sql`, `sqlalchemy` |
+| Frameworks | `fastapi`, `fullstack`, `project-onboarding`, `pydantic` |
+| DevOps | `docker`, `kubernetes` |
+| Mobile | `android` |
+| Security | `owasp`, `debug` |
+| Tools | `git`, `mcp` |
+| Reference | `shared-templates`, `rails-migration` |
 
-```yaml
----
-description: "When to use this agent"
-mode: subagent  # or primary
-permission:
-  edit: ask
-  bash:
-    "*": allow
-    "git commit*": ask
-  webfetch: allow
----
-```
+## Invoking Skills
 
-3. Add agent to routing table in `obama.md`
-4. Update this wiki page
+Skills can be loaded two ways:
 
-## Agent Permission Levels
+1. **Automatic** — AGENTS.md rules trigger `skill(name="…")` based on project type and task
+2. **Manual** — User types `/skill-name` (e.g., `/git`, `/docker`, `/debug`)
 
-| Permission | Description |
-|------------|-------------|
-| `allow` | Agent can execute without confirmation |
-| `ask` | Agent asks user before executing |
-| `deny` | Agent cannot execute |
+## Model Configuration
 
-Permissions are defined in `opencode.jsonc` under `permission`.
-
----
-
-## Model Configuration for Agents
-
-**All agents use environment-based model configuration** to support multiple work environments.
-
-### Environment Variables
-
-Agents read model configuration from:
-
-- `$OPENCODE_MODEL` - Primary model (e.g., `amazon-bedrock/anthropic.claude-sonnet-4-5...`)
-- `$OPENCODE_SMALL_MODEL` - Smaller/faster model for quick tasks
-
-### Why No Hardcoded Models?
-
-❌ **Before:** Agent files specified `github-copilot/claude-sonnet-4.6`  
-✅ **Now:** Agent files reference `$OPENCODE_MODEL` from environment
-
-**Benefits:**
-- Switch between work (AWS Bedrock) and personal (GitHub Copilot) seamlessly
-- Subagents inherit correct model configuration
-- Same agent works across all projects and machines
-
-### Configuration Files
+All model selection is environment-driven. No hardcoded models.
 
 ```jsonc
 // ~/.config/opencode/opencode.jsonc
@@ -158,4 +104,13 @@ AWS_REGION=ap-southeast-2
 AWS_PROFILE=your-profile
 ```
 
-For troubleshooting model configuration issues, see the [Model Configuration Guide](https://github.com/jcchikikomori/.dotfiles/blob/main/docs/OPENCODE_MODEL_CONFIG.md).
+## Active Plugins
+
+| Plugin | Purpose |
+|--------|---------|
+| `envsitter-guard` | Blocks access to `.env` and credential files |
+| `opencode-mem` | Persistent session memory |
+| `opencode-redactor` | Strips sensitive data from logs |
+| `@franlol/opencode-md-table-formatter` | Auto-formats markdown tables |
+| `plugins/git-commit-guard.ts` | Blocks `git commit` (GPG TTY constraint) |
+| `plugins/quality.ts` | Runs prettier after file edits |

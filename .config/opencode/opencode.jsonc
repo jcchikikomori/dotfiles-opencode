@@ -6,12 +6,12 @@
   ],
   "plugin": [
     "envsitter-guard@latest",
-    "oh-my-opencode-slim",
     "@franlol/opencode-md-table-formatter@latest",
     "opencode-mem",
     "opencode-redactor@0.1.1"
   ],
-  "default_agent": "OpenAgent",
+  "model": "{env:OPENCODE_MODEL}",
+  "small_model": "{env:OPENCODE_SMALL_MODEL}",
   "permission": {
     "tool": {
       "*": "allow"

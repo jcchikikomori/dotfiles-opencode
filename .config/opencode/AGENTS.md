@@ -29,6 +29,44 @@ docker compose run --rm -e RUBYOPT='-W0' <container_name> <command>
 docker compose run --rm <container_name> <command>
 ```
 
+## Skill Auto-Loading (Mandatory)
+
+Always invoke the relevant skill(s) before starting any task. Detect project type from files present in the working directory.
+
+### By Technology
+
+| Detected | Skills to Load |
+|----------|----------------|
+| `Gemfile` / Rails | `skill(name="ruby")` + `skill(name="ruby-on-rails")` |
+| `package.json` + React | `skill(name="nodejs")` + `skill(name="reactjs")` |
+| `package.json` + Vue | `skill(name="nodejs")` + `skill(name="vuejs")` |
+| `package.json` + Angular | `skill(name="nodejs")` + `skill(name="angularjs")` |
+| `pyproject.toml` / FastAPI | `skill(name="python")` + `skill(name="fastapi")` |
+| `pom.xml` / Spring Boot | `skill(name="java")` + `skill(name="spring-boot")` |
+| `build.gradle` / Grails | `skill(name="java")` + `skill(name="grails")` |
+| `composer.json` | `skill(name="php")` |
+| `AndroidManifest.xml` | `skill(name="android")` |
+| Any SQL work | relevant SQL skill first (`postgresql`, `mysql-mariadb`, or `oracle-sql`) |
+| Security audit requested | `skill(name="owasp")` first |
+
+### By Task Type
+
+| Task | Skill to Load |
+|------|---------------|
+| Git operations | `skill(name="git")` |
+| Docker / Kubernetes | `skill(name="docker")` or `skill(name="kubernetes")` |
+| Debugging / bug investigation | `skill(name="debug")` |
+| MCP configuration | `skill(name="mcp")` |
+| New component or module documentation | `skill(name="component-doc")` |
+| Project onboarding / structure explanation | `skill(name="project-onboarding")` |
+| Rails DB migrations | `skill(name="rails-migration")` |
+| Python data models / validation | `skill(name="pydantic")` |
+| SQLAlchemy ORM work | `skill(name="sqlalchemy")` |
+
+### Invoking Skills via Command
+
+Users can invoke skills directly with `/skill-name` (e.g., `/git`, `/docker`, `/debug`).
+
 ## Git Rules (Mandatory)
 
 - Load the `git` skill for all operations that involves using Git: `skill(name="git")`

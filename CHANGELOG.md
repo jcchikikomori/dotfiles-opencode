@@ -4,6 +4,19 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 
 ## [Unreleased]
 
+### Changed
+
+- **Reverted to vanilla opencode** — Removed OpenAgentsControl (OAC) and oh-my-opencode-slim
+  - Removed `oh-my-opencode-slim` plugin and `default_agent: "OpenAgent"` (OAC orchestrator)
+  - Removed `oh-my-opencode-slim.template.json` and `scripts/generate-slim-config/` TypeScript generator
+  - Added `model` / `small_model` env-var fields to `opencode.jsonc` (required without OAC)
+  - Skill routing now instruction-driven via expanded `AGENTS.md` (Claude Code parity)
+  - Added full skill auto-loading table to `AGENTS.md` (by tech stack + by task type)
+  - Rewrote `wiki/Agent-Architecture.md` to reflect vanilla + skill-driven setup
+- **`opencode-mem` retained** — persistent session memory kept
+
+---
+
 ### Added
 
 - **OpenAgentsControl (OAC)** - Pattern-first AI development framework installed to `~/.opencode/`
