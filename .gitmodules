@@ -1,0 +1,3 @@
+[submodule ".config/opencode/skills"]
+	path = .config/opencode/skills
+	url = https://github.com/jcchikikomori/skills-md
