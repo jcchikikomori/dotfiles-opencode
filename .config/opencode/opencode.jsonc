@@ -52,6 +52,11 @@
       "url": "https://mcp.buildkite.com/mcp",
       "enabled": false
     },
+    "github-mcp": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp",
+      "enabled": true
+    },
     "web-forager": {
       "type": "local",
       "command": [
@@ -59,22 +64,6 @@
         "serve"
       ],
       "enabled": true
-    },
-    "github-mcp": {
-      "type": "local",
-      "command": [
-        "docker",
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "dhi.io/github-mcp"
-      ],
-      "enabled": false,
-      "environment": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
     },
     "stackoverflow-mcp": {
       "type": "local",
