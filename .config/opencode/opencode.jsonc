@@ -100,14 +100,14 @@
         "chrome-devtools-mcp@latest",
         "--no-usage-statistics"
       ],
-      "enabled": true
+      "enabled": false
     },
     "mcp-ocr": {
       "type": "local",
       "command": [
         "mcp-ocr"
       ],
-      "enabled": true
+      "enabled": false
     },
     "atlassian-mcp": {
       "type": "local",
