@@ -70,6 +70,15 @@
       ],
       "enabled": true
     },
+    "camoufox": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "camoufox-mcp-server@latest"
+      ],
+      "enabled": true
+    },
     "stackoverflow-mcp": {
       "type": "local",
       "command": [
