@@ -622,11 +622,11 @@ EOF
 
 action_install_mcps() {
     echo ""
-    if command -v dotfiles-opencode > /dev/null 2>&1; then
-        dotfiles-opencode install-mcps
+    if command -v devtools-opencode > /dev/null 2>&1; then
+        devtools-opencode mcp install
     else
-        echo "[wizard] dotfiles-opencode not in PATH."
-        echo "  Make sure ~/.local/bin/org.jcchikikomori.dotfiles/bin is on your PATH."
+        echo "[wizard] devtools-opencode not in PATH."
+        echo "  Make sure ~/.local/bin/org.jcchikikomori.devtools/bin is on your PATH."
     fi
 }
 
@@ -638,11 +638,11 @@ action_install_project_mcps() {
         echo "  Run option 8 to init a project config first."
         return
     fi
-    if command -v dotfiles-opencode > /dev/null 2>&1; then
-        dotfiles-opencode install-mcps
+    if command -v devtools-opencode > /dev/null 2>&1; then
+        devtools-opencode mcp install
     else
-        echo "[wizard] dotfiles-opencode not in PATH."
-        echo "  Make sure ~/.local/bin/org.jcchikikomori.dotfiles/bin is on your PATH."
+        echo "[wizard] devtools-opencode not in PATH."
+        echo "  Make sure ~/.local/bin/org.jcchikikomori.devtools/bin is on your PATH."
     fi
 }
 
@@ -851,6 +851,16 @@ action_add_credential_provider() {
     fi
 }
 
+action_install_omo() {
+    echo ""
+    if command -v devtools-opencode > /dev/null 2>&1; then
+        devtools-opencode omo install
+    else
+        echo "[wizard] devtools-opencode not in PATH."
+        echo "  Make sure ~/.local/bin/org.jcchikikomori.devtools/bin is on your PATH."
+    fi
+}
+
 # ─── Main menu ────────────────────────────────────────────────────────────────
 
 _ensure_config
@@ -881,6 +891,7 @@ while true; do
     echo "  ────────────────────────────────"
     echo " 12) Install / update free-coding-models"
     echo " 13) Add credential provider"
+    echo " 14) Install / configure oh-my-opencode"
     echo "  q) Quit"
     echo "===================================="
     printf "Choice: "
@@ -900,6 +911,7 @@ while true; do
         11) action_install_project_mcps ;;
         12) action_install_free_coding_models ;;
         13) action_add_credential_provider ;;
+        14) action_install_omo ;;
         q | Q) echo "Bye!"; exit 0 ;;
         *) echo "Unknown option: $choice" ;;
     esac

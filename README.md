@@ -129,8 +129,8 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 ### 1. Clone and Install Configuration
 
 ```sh
-git clone https://github.com/jcchikikomori/dotfiles-opencode.git
-cd dotfiles-opencode
+git clone https://github.com/jcchikikomori/.dotfiles.git
+cd .dotfiles
 
 # Copy configuration to ~/.config/opencode
 mkdir -p ~/.config
@@ -138,7 +138,6 @@ cp -r .config/opencode ~/.config
 
 # Install helper scripts
 mkdir -p ~/.local/bin
-cp bin/dotfiles-opencode-env ~/.local/bin/
 chmod +x bin/install-oac
 
 # Add to PATH if not already
@@ -311,23 +310,7 @@ When you run `opencode`, a shell wrapper loads env files in this order:
 
 This happens **per invocation** via a subshell — no persistent shell pollution.
 
-### How the Wrapper Works
-
-The `opencode()` function delegates to `~/.local/bin/dotfiles-opencode-env`, which:
-
-1. Loads `~/.config/opencode/.env`
-2. Walks up from `$PWD` to find nearest `.opencode/.env` and loads it
-3. `exec`s the real `opencode` binary
-
-### Debug Toggle
-
-```sh
-_DOTFILES_OPENCODE_ENV_DEBUG=1 opencode
-```
-
-### Recursion Safety
-
-The wrapper sets `_DOTFILES_OPENCODE_ENV_LOADED=1` before `exec`-ing opencode, preventing infinite loops if the function is re-entered.
+> **Note:** Environment variables for opencode (tokens, model config, etc.) should be placed in `~/.profile.local`. This file is automatically sourced by the devtools helper scripts.
 
 ---
 
@@ -392,33 +375,17 @@ This configuration uses `oh-my-opencode-slim` — a lightweight skill organizati
 
 This package includes management scripts installed to `~/.local/bin/org.jcchikikomori.agentic.opencode/bin/`:
 
-### `dotfiles-opencode`
+### `devtools-opencode`
 
-Main management script for OpenCode configuration:
+This package is managed by `devtools-opencode`, which provides subcommands for installation, configuration, and maintenance. Run `devtools-opencode --help` for the full list of available commands.
 
-- `dotfiles-opencode install` — Install opencode binary and all MCP dependencies
-- `dotfiles-opencode install-mcps` — Install/check MCP dependencies from JSON registry
-- `dotfiles-opencode generate-instructions` — Generate AGENTS.md from shared source
-- `dotfiles-opencode install-oac` — Install OpenAgentsControl (OAC) separately
-- `dotfiles-opencode install-slim-config` — Generate oh-my-opencode-slim configuration
-- `dotfiles-opencode wizard` — Launch interactive setup wizard
-- `dotfiles-opencode clear-cache` — Clear OpenCode cache (useful after config changes)
-- `dotfiles-opencode update` — Update opencode to latest version
-
-**Dynamic MCP Loading**: The script now dynamically reads MCPs from:
+**Dynamic MCP Loading**: The script reads MCPs from:
 1. Local `linux/opencode/mcps.json` (if it exists)
 2. Shared `shared/ai-agents/mcps.json` (fallback)
 
 This allows OpenCode to maintain its own MCP registry while sharing common MCPs with other agents.
 
 **Environment Variables**: This script automatically sources `~/.profile.local` to load MCP tokens (GITHUB_PERSONAL_ACCESS_TOKEN, STACK_EXCHANGE_API_KEY, etc.)
-
-### `dotfiles-opencode-env`
-
-Environment configuration helper:
-
-- Sets up shell environment for opencode
-- Configures PATH and required environment variables
 
 ### `dotfiles-opencode-wizard`
 
@@ -427,6 +394,8 @@ Interactive setup wizard:
 - Guides through initial configuration
 - Helps select model providers and configure tokens
 - Sets up project-specific settings
+
+> **Note:** The wizard internally calls `devtools-opencode` to perform installation and configuration tasks.
 
 ### Environment Variable Loading
 

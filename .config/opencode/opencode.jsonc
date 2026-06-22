@@ -8,7 +8,8 @@
     "envsitter-guard@latest",
     "@franlol/opencode-md-table-formatter@latest",
     "opencode-mem",
-    "opencode-redactor@0.1.1"
+    "opencode-redactor@0.1.1",
+    "oh-my-opencode"
   ],
   "model": "{env:OPENCODE_MODEL}",
   "small_model": "{env:OPENCODE_SMALL_MODEL}",
