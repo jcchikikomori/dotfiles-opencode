@@ -60,7 +60,7 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 
 | File | Purpose |
 |------|---------|
-| `opencode.jsonc` | Main config: MCPs, providers, permissions |
+| `templates/opencode.jsonc` | **Template** for main config (copied to `~/.config/opencode/` on install) |
 | `AGENTS.md` | Global agent instructions |
 | `.env.example` | Template for MCP environment variables |
 | `.env` | **Local-only** (gitignored) — your actual tokens |
@@ -71,7 +71,7 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 
 ```text
 .config/opencode/
-├── opencode.jsonc          # Main configuration
+├── opencode.jsonc          # Main configuration (copied from template on install)
 ├── AGENTS.md               # Global agent instructions
 ├── .env.example            # Environment template
 ├── skills/                 # 32 specialized skills
@@ -85,6 +85,9 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 ├── agents/                 # (Reserved for future use)
 ├── plugins/                # Plugin configurations
 └── scripts/                # Utility scripts
+
+templates/
+└── opencode.jsonc          # Config template (copied to ~/.config/opencode/ if missing)
 ```
 
 ---
@@ -132,9 +135,13 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 git clone https://github.com/jcchikikomori/.dotfiles.git
 cd .dotfiles
 
-# Copy configuration to ~/.config/opencode
-mkdir -p ~/.config
-cp -r .config/opencode ~/.config
+# Install opencode configuration (generates ~/.config/opencode/opencode.jsonc from template)
+devtools-opencode install
+
+# Or manually copy configuration to ~/.config/opencode
+mkdir -p ~/.config/opencode
+cp templates/opencode.jsonc ~/.config/opencode/opencode.jsonc
+cp -r .config/opencode/* ~/.config/opencode/
 
 # Install helper scripts
 mkdir -p ~/.local/bin
@@ -378,6 +385,8 @@ This package includes management scripts installed to `~/.local/bin/org.jcchikik
 ### `devtools-opencode`
 
 This package is managed by `devtools-opencode`, which provides subcommands for installation, configuration, and maintenance. Run `devtools-opencode --help` for the full list of available commands.
+
+**Generated Configuration**: On first install, `devtools-opencode install` copies `templates/opencode.jsonc` to `~/.config/opencode/opencode.jsonc` if it doesn't already exist. This ensures your local config survives stow/restow cycles and can be customized without being overwritten.
 
 **Dynamic MCP Loading**: The script reads MCPs from:
 1. Local `linux/opencode/mcps.json` (if it exists)
