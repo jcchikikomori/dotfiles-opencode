@@ -223,6 +223,7 @@ This configuration uses the following plugins:
 |-----|-------------------|------------|
 | `context7` | **None** — public API | Remote MCP at `https://mcp.context7.com/mcp` |
 | `web-forager` | **None** | Local command: `web-forager serve` |
+| `camoufox` | **None** | Local command: `npx -y camoufox-mcp-server@latest` |
 | `chrome-devtools` | **None** | Local command: `npx -y chrome-devtools-mcp@latest` |
 | `mcp-ocr` | **None** | Local command: `mcp-ocr` |
 | `markitdown-mcp` | **None** | Local command: `uvx markitdown-mcp` (requires Python 3.10+) |
@@ -234,7 +235,7 @@ This configuration uses the following plugins:
 | `sonarqube-mcp` | `SONARQUBE_TOKEN`, `SONARQUBE_URL` | Your SonarQube instance → My Account → Security |
 | `buildkite-mcp` | **None** — uses OAuth | Remote MCP at `https://mcp.buildkite.com/mcp`; authenticate via OAuth browser flow when first enabled |
 
-> **Note:** MCPs marked as enabled by default: `context7`, `web-forager`, `chrome-devtools`, `mcp-ocr`, `markitdown-mcp`, `markdownlint-mcp`. Others require configuration and enabling in `opencode.jsonc`.
+> **Note:** MCPs marked as enabled by default: `context7`, `web-forager`, `camoufox`, `chrome-devtools`, `mcp-ocr`, `markitdown-mcp`, `markdownlint-mcp`. Others require configuration and enabling in `opencode.jsonc`.
 >
 > **New Document Processing MCPs:**
 > - **markitdown-mcp** — Microsoft's converter supporting PDF, Office docs (DOCX, PPTX, XLSX), images with OCR, audio with transcription, HTML, CSV, JSON, XML, ZIP, YouTube URLs, and EPubs to clean Markdown
