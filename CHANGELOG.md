@@ -67,7 +67,7 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 
 If you have existing configurations with hardcoded models:
 
-1. Add to `~/.config/opencode/.env`:
+1. Add to `~/.profile.local`:
 
    ```bash
    OPENCODE_MODEL=your-provider/your-model

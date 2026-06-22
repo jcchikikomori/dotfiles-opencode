@@ -97,7 +97,7 @@ All model selection is environment-driven. No hardcoded models.
 ```
 
 ```bash
-# ~/.config/opencode/.env
+# ~/.profile.local
 OPENCODE_MODEL=amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0
 OPENCODE_SMALL_MODEL=amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0
 AWS_REGION=ap-southeast-2

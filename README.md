@@ -62,8 +62,6 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 |------|---------|
 | `templates/opencode.jsonc` | **Template** for main config (copied to `~/.config/opencode/` on install) |
 | `AGENTS.md` | Global agent instructions |
-| `.env.example` | Template for MCP environment variables |
-| `.env` | **Local-only** (gitignored) — your actual tokens |
 | `oh-my-opencode-slim.template.json` | Template for oh-my-opencode-slim plugin |
 | `opencode-mem.jsonc` | Configuration for opencode-mem plugin |
 
@@ -73,7 +71,6 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 .config/opencode/
 ├── opencode.jsonc          # Main configuration (copied from template on install)
 ├── AGENTS.md               # Global agent instructions
-├── .env.example            # Environment template
 ├── skills/                 # 32 specialized skills
 │   ├── android/
 │   ├── backend/
@@ -171,11 +168,11 @@ This installs OAC to `~/.opencode/` with:
 ### 3. Configure Environment
 
 ```sh
-# Copy the example env file
-cp ~/.config/opencode/.env.example ~/.config/opencode/.env
+# Copy the example profile to ~/.profile.local
+cp ~/.dotfiles/.profile.local.example ~/.profile.local
 
 # Edit and fill in your tokens (see Required Tokens section below)
-nano ~/.config/opencode/.env
+nano ~/.profile.local
 ```
 
 Restart your shell (or `source ~/.profile`) to load the env vars.
@@ -251,7 +248,7 @@ This configuration uses the following plugins:
 
 ### Required Environment Variables
 
-Add these to `~/.config/opencode/.env`:
+Add these to `~/.profile.local`:
 
 ```bash
 # Model Configuration (REQUIRED)
@@ -300,24 +297,17 @@ For detailed troubleshooting and best practices, see the [Model Configuration Gu
 
 ### Global vs Project-Level
 
-The `.env` file is sourced automatically by `~/.profile` on shell startup:
+Environment variables for opencode (tokens, model config, etc.) should be placed in `~/.profile.local`. This file is automatically sourced by `~/.profile` on shell startup and by the devtools helper scripts.
 
 ```sh
-if [ -f "$HOME/.config/opencode/.env" ]; then
-    set -a  # Auto-export all variables
-    . "$HOME/.config/opencode/.env"
-    set +a
-fi
+# ~/.profile.local — add your tokens here
+export OPENCODE_MODEL="amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0"
+export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_xxx"
 ```
 
-When you run `opencode`, a shell wrapper loads env files in this order:
+For project-specific overrides, create `.opencode/.env` in your project root.
 
-1. `~/.config/opencode/.env` — global tokens (loaded first, lower precedence)
-2. Nearest `$PWD` ancestor `.opencode/.env` — project-specific overrides (loaded second, wins)
-
-This happens **per invocation** via a subshell — no persistent shell pollution.
-
-> **Note:** Environment variables for opencode (tokens, model config, etc.) should be placed in `~/.profile.local`. This file is automatically sourced by the devtools helper scripts.
+> **Note:** The old `~/.config/opencode/.env` path is no longer used. `dotfiles-opencode-env` has been removed in favor of `~/.profile.local`.
 
 ---
 
@@ -370,7 +360,7 @@ This configuration uses `oh-my-opencode-slim` — a lightweight skill organizati
 
 ## Security
 
-- `.env` is gitignored via `.config/opencode/.env` pattern
+- `~/.profile.local` is the recommended place for tokens (not committed to git)
 - **Never commit tokens** to git
 - Use separate tokens per machine if possible (easier to revoke)
 - Plugins like `envsitter-guard` and `opencode-redactor` help prevent accidental secret exposure
