@@ -4,4 +4,5 @@
 .config/opencode/.env
 .config/opencode/node_modules/
 .config/opencode/oh-my-opencode-slim.json
+.config/opencode/skills/
 .config/opencode/scripts/generate-slim-config/node_modules/
