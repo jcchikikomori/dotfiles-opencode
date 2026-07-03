@@ -36,7 +36,7 @@ Always invoke the relevant skill(s) before starting any task. Detect project typ
 ### By Technology
 
 | Detected | Skills to Load |
-|----------|----------------|
+| ---------- | ---------------- |
 | `Gemfile` / Rails | `skill(name="ruby")` + `skill(name="ruby-on-rails")` |
 | `package.json` + React | `skill(name="nodejs")` + `skill(name="reactjs")` |
 | `package.json` + Vue | `skill(name="nodejs")` + `skill(name="vuejs")` |
@@ -52,7 +52,7 @@ Always invoke the relevant skill(s) before starting any task. Detect project typ
 ### By Task Type
 
 | Task | Skill to Load |
-|------|---------------|
+| ------ | --------------- |
 | Git operations | `skill(name="git")` |
 | Docker / Kubernetes | `skill(name="docker")` or `skill(name="kubernetes")` |
 | Debugging / bug investigation | `skill(name="debug")` |
@@ -76,6 +76,55 @@ Users can invoke skills directly with `/skill-name` (e.g., `/git`, `/docker`, `/
 - Use `git stash` or `git checkout <different-branch>` to archive the existing/untrackes changes, before writing/editing the changes.
 - Fetch the current repository first before doing any changes. If there's a ongoing change from upstream or main development branch, ask if you needed to merge/rebase.
 - For comparing changes, use `git diff` or `diff` commands.
+- The agent generates commit messages; the user runs the commit and push (see [AI Usage Policy](#ai-usage-policy-mandatory)).
+
+## AI Usage Policy (Mandatory)
+
+- **Never auto-merge PRs** — the agent creates the PR, human merges.
+- **Never auto-close Jira tickets** — user moves ticket to Code Review swim lane manually after PR is created.
+- **User will do the commit & push** — the agent will generate the commit message, but user will run the commit and push commands in their terminal.
+- Self-review and AI-review code before requesting team code review.
+- **Do not commit AI markdown files to PRs** — `docs/ticket-tracking/XXXXX.md` and any other agent state/tracking files must NOT be included in PRs or committed to the branch. Keep them local only or gitignored. Never stage these files when creating commits for PRs.
+
+## Commit Messages — Conventional Commits (Mandatory)
+
+Use [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) when generating commit messages:
+
+```text
+<type>(<optional scope>): <description>
+
+<optional body>
+
+Co-authored-by: <Model name with version> <noreply@anthropic.com>
+```
+
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- Breaking changes: append `!` after type/scope, or add a `BREAKING CHANGE:` footer.
+- Subject line: imperative mood, lowercase description, no trailing period, max 50 characters.
+- Adjust the `Co-authored-by` email to the model's provider if not Anthropic.
+- Project-level AGENTS.md files may override this format (e.g., ticket-prefixed subjects like `[RTO-XXXXX] Summary`).
+
+## Code Review (Mandatory)
+
+- Use [Conventional Comments](https://conventionalcomments.org/) format: `suggestion:`, `issue (blocking):`, `nitpick:`, `praise:`, etc.
+- When a review comment is AI-generated, append an AI usage disclaimer to the comment.
+
+## Memory — opencode-mem (Mandatory when installed)
+
+Use **opencode-mem** for semantic/associative recall across all past work. Skip this section silently if the opencode-mem plugin is not available.
+
+- opencode-mem auto-captures session context and injects relevant memories into new chats; use its search to find prior context by concept.
+
+### When to search memory
+
+- Starting a task in a known domain: search for prior context (models, patterns, past gotchas).
+- Encountering an unfamiliar pattern: search for prior encounters or resolutions.
+- Writing specs/tests: search for spec patterns used in similar models/controllers.
+- Before implementing: search for relevant feedback or decisions from prior similar work.
+
+### Future consideration
+
+Prefer a Docker-based memory store with a named volume (e.g. mempalace Docker variant), so memories are shared across WSL instances and contained workspaces. Not set up yet — note only.
 
 ## Code Style (Mandatory)
 
