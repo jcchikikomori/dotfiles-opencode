@@ -1,0 +1,35 @@
+# Comments and blank lines are allowed.
+
+RCS
+.+,v
+
+CVS
+\.\#.+       # CVS conflict files / emacs lock files
+\.cvsignore
+
+\.svn
+_darcs
+\.hg
+
+\.git
+\.gitignore
+\.gitmodules
+
+.+~          # emacs backup files
+\#.*\#       # emacs autosave files
+
+^/README.*
+^/LICENSE.*
+^/COPYING
+^/CHANGELOG.*
+^/CONTRIBUTING.*
+
+# Repo-own tooling, not a $HOME dotfile: this file lints the
+# dotfiles-opencode repo itself, distinct from linux/git's own
+# .pre-commit-config.yaml which IS meant for $HOME.
+^/\.pre-commit-config\.yaml$
+
+^/\.vscode$
+^/\.zopencode$
+^/templates$
+^/wiki$
