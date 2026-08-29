@@ -6,14 +6,44 @@ All notable changes to the OpenCode configuration and custom agents for this dot
 
 ### Changed
 
-- **Reverted to vanilla opencode** — Removed OpenAgentsControl (OAC) and oh-my-opencode-slim
-  - Removed `oh-my-opencode-slim` plugin and `default_agent: "OpenAgent"` (OAC orchestrator)
-  - Removed `oh-my-opencode-slim.template.json` and `scripts/generate-slim-config/` TypeScript generator
-  - Added `model` / `small_model` env-var fields to `opencode.jsonc` (required without OAC)
-  - Skill routing now instruction-driven via expanded `AGENTS.md` (Claude Code parity)
-  - Added full skill auto-loading table to `AGENTS.md` (by tech stack + by task type)
-  - Rewrote `wiki/Agent-Architecture.md` to reflect vanilla + skill-driven setup
-- **`opencode-mem` retained** — persistent session memory kept
+- **Adopted oh-my-opencode-slim** as the orchestration layer
+  - Added `oh-my-opencode-slim` plugin to `templates/opencode.jsonc` plugin array (replaces `oh-my-opencode@latest`)
+  - Opencode-go preset active in `~/.config/opencode/oh-my-opencode-slim.json` (`opencode-go/minimax-m3` Orchestrator, `opencode-go/qwen3.7-max` Oracle, `opencode-go/deepseek-v4-flash` workers, `opencode-go/kimi-k2.7-code` Designer, `opencode-go/mimo-v2.5` Observer)
+  - Default `explore` and `general` agents disabled in favour of omo-slim's specialised agents
+  - LSP enabled in `opencode.jsonc`
+  - 8 bundled skills installed via the installer: `simplify`, `codemap`, `clonedeps`, `deepwork`, `verification-planning`, `reflect`, `worktrees`, `oh-my-opencode-slim`
+  - Tmux multiplexer enabled (`type: auto`, `layout: main-vertical`) so background agents open live panes when running `omos` inside tmux
+  - Desktop companion disabled in config (`oh-my-opencode-slim.json > companion.enabled = false`) — overlays obstruct the terminal UI
+
+### Removed
+
+- **`.local/bin/org.jcchikikomori.agentic.opencode/`** — 918-line interactive setup wizard deleted from the repo. Most of what the wizard did is now handled by `oh-my-opencode-slim`'s own config + install command. Manual edits to the templates replace the menu-driven flow.
+- **`oh-my-opencode@latest`** — replaced by `oh-my-opencode-slim`
+- **`oh-my-openagent@latest`** / `oh-my-openagent` from `tui.json` — replaced by the omo-slim TUI badge
+
+### Migration
+
+Run once after pulling these changes:
+
+```sh
+bunx oh-my-opencode-slim@latest install --no-tui --skills=yes \
+  --background-subagents=yes --companion=no --preset=opencode-go
+```
+
+Then disable the companion in `~/.config/opencode/oh-my-opencode-slim.json`:
+
+```jsonc
+"companion": { "enabled": false }
+```
+
+Add to `~/.profile.local`:
+
+```sh
+export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
+export OPENCODE_ENABLE_EXA=1
+```
+
+And define the `omos()` launcher (mirrors the helper from omo-slim's multiplexer docs) so tmux sessions pick a free port automatically.
 
 ---
 
