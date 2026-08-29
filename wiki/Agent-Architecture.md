@@ -83,25 +83,6 @@ Skills can be loaded two ways:
 
 1. **Automatic** — AGENTS.md rules trigger `skill(name="…")` based on project type and task
 2. **Manual** — User types `/skill-name` (e.g., `/git`, `/docker`, `/debug`)
-
-## Model Configuration
-
-All model selection is environment-driven. No hardcoded models.
-
-```jsonc
-// ~/.config/opencode/opencode.jsonc
-{
-  "model": "{env:OPENCODE_MODEL}",
-  "small_model": "{env:OPENCODE_SMALL_MODEL}"
-}
-```
-
-```bash
-# ~/.profile.local
-OPENCODE_MODEL=amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0
-OPENCODE_SMALL_MODEL=amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0
-AWS_REGION=ap-southeast-2
-AWS_PROFILE=your-profile
 ```
 
 ## Active Plugins

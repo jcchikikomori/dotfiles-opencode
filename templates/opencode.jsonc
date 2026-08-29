@@ -11,8 +11,6 @@
     "opencode-redactor@0.1.1",
     "oh-my-opencode"
   ],
-  "model": "{env:OPENCODE_MODEL}",
-  "small_model": "{env:OPENCODE_SMALL_MODEL}",
   "permission": {
     "tool": {
       "*": "allow"
@@ -109,13 +107,6 @@
         "-y",
         "chrome-devtools-mcp@latest",
         "--no-usage-statistics"
-      ],
-      "enabled": false
-    },
-    "mcp-ocr": {
-      "type": "local",
-      "command": [
-        "mcp-ocr"
       ],
       "enabled": false
     },
