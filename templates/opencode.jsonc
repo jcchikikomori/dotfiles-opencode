@@ -9,7 +9,7 @@
     "@franlol/opencode-md-table-formatter@latest",
     "opencode-mem",
     "opencode-redactor@0.1.1",
-    "oh-my-opencode"
+    "oh-my-opencode@latest"
   ],
   "permission": {
     "tool": {
