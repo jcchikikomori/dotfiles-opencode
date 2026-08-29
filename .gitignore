@@ -1,3 +1,4 @@
+.omo/
 **/node_modules/
 .config/opencode/memory_data/
 !.config/opencode/memory_data/.gitinclude

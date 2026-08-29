@@ -7,34 +7,24 @@
 
 ---
 
-## About the Agent Framework
+## About
 
-This configuration uses **OpenAgentsControl (OAC)** — a pattern-first AI development framework that provides specialized agents for different development tasks. OAC includes:
-
-- **OpenAgent** — General purpose agent for exploration and quick tasks
-- **OpenCoder** — Production-focused agent with strict approval gates and quality standards
-- **11 specialized subagents** — ContextScout, TaskManager, CoderAgent, TestEngineer, CodeReviewer, and more
-- **198+ context files** — Core patterns, workflows, standards, and external library guides
-- **9 productivity commands** — `/add-context`, `/commit`, `/test`, `/context`, `/optimize`, etc.
-
-The framework follows an **MVI (Minimal Viable Information)** principle for efficient token usage and implements **approval gates workflow**: Discover → Propose → Approve → Execute → Validate → Ship.
+This package provides [opencode](https://opencode.ai) configuration files that are stowed to `~/.config/opencode/`. It includes MCP definitions, plugin settings, 32+ specialized skills, and environment-based model selection.
 
 ---
 
 ## Table of Contents
 
 - [Opencode Configuration](#opencode-configuration)
-  - [About the Agent Framework](#about-the-agent-framework)
+  - [About](#about)
   - [Table of Contents](#table-of-contents)
   - [Files](#files)
     - [Directory Structure](#directory-structure)
-  - [Architecture](#architecture)
   - [Setup](#setup)
     - [1. Clone and Install Configuration](#1-clone-and-install-configuration)
-    - [2. Install OpenAgentsControl (OAC)](#2-install-openagentscontrol-oac)
-    - [3. Configure Environment](#3-configure-environment)
-    - [4. Enable MCPs](#4-enable-mcps)
-    - [5. Start Using OpenAgentsControl](#5-start-using-openagentscontrol)
+    - [2. Configure Environment](#2-configure-environment)
+    - [3. Enable MCPs](#3-enable-mcps)
+    - [4. Start Using](#4-start-using)
   - [Required Tokens](#required-tokens)
   - [Plugins](#plugins)
   - [Model Configuration](#model-configuration)
@@ -44,13 +34,9 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
     - [Supported Providers](#supported-providers)
   - [Environment Loading](#environment-loading)
     - [Global vs Project-Level](#global-vs-project-level)
-    - [How the Wrapper Works](#how-the-wrapper-works)
-    - [Debug Toggle](#debug-toggle)
-    - [Recursion Safety](#recursion-safety)
   - [Per-Project Configuration](#per-project-configuration)
     - [Minimal Project Config Example](#minimal-project-config-example)
     - [opencode-mem Plugin](#opencode-mem-plugin)
-    - [oh-my-opencode-slim Plugin](#oh-my-opencode-slim-plugin)
   - [Security](#security)
   - [License](#license)
 
@@ -62,7 +48,6 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 |------|---------|
 | `templates/opencode.jsonc` | **Template** for main config (copied to `~/.config/opencode/` on install) |
 | `AGENTS.md` | Global agent instructions |
-| `oh-my-opencode-slim.template.json` | Template for oh-my-opencode-slim plugin |
 | `opencode-mem.jsonc` | Configuration for opencode-mem plugin |
 
 ### Directory Structure
@@ -79,47 +64,11 @@ The framework follows an **MVI (Minimal Viable Information)** principle for effi
 │   ├── nodejs/
 │   ├── python/
 │   └── ... (and 26 more)
-├── agents/                 # (Reserved for future use)
-├── plugins/                # Plugin configurations
-└── scripts/                # Utility scripts
+├── plugins/                # Custom TypeScript plugins
+└── mcps.json               # Shared MCP server registry
 
 templates/
 └── opencode.jsonc          # Config template (copied to ~/.config/opencode/ if missing)
-```
-
----
-
-## Architecture
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                          USER REQUEST                           │
-└─────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              OPENAGENTSCONTROL (OAC) FRAMEWORK                  │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  OpenAgent: General purpose, exploration                  │  │
-│  │  OpenCoder: Production code, approval gates               │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                                  │
-        ┌─────────────────────────┼───────────────────────┐
-        │                         │                       │
-        ▼                         ▼                       ▼
-┌───────────────┐         ┌───────────────┐       ┌───────────────┐
-│ SKILLS        │         │ SUBAGENTS     │       │ CONTEXT FILES │
-│ (32 skills)   │         │ (11 agents)   │       │ (198+ files)  │
-│               │         │               │       │               │
-│ • android     │         │ • ContextScout│       │ • Standards   │
-│ • backend     │         │ • TaskManager │       │ • Workflows   │
-│ • frontend    │         │ • CoderAgent  │       │ • Patterns    │
-│ • git         │         │ • TestEngineer│       │ • Library     │
-│ • nodejs      │         │ • CodeReviewer│       │   Guides      │
-│ • python      │         │ • BatchExecutor│      │               │
-│ • ... (26+)   │         │ • ... (5+)    │       │               │
-└───────────────┘         └───────────────┘       └───────────────┘
 ```
 
 ---
@@ -140,67 +89,29 @@ mkdir -p ~/.config/opencode
 cp templates/opencode.jsonc ~/.config/opencode/opencode.jsonc
 cp -r .config/opencode/* ~/.config/opencode/
 
-# Install helper scripts
-mkdir -p ~/.local/bin
-chmod +x bin/install-oac
-
 # Add to PATH if not already
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### 2. Install OpenAgentsControl (OAC)
+### 2. Configure Environment
 
 ```sh
-# Install OAC framework (agents, context files, commands)
-./bin/install-oac install
-
-# Verify installation
-./bin/install-oac status
-```
-
-This installs OAC to `~/.opencode/` with:
-
-- OpenAgent and OpenCoder (main agents)
-- 11 specialized subagents
-- 198+ context files
-- 9 productivity commands
-
-### 3. Configure Environment
-
-```sh
-# Copy the example profile to ~/.profile.local
-cp ~/.dotfiles/.profile.local.example ~/.profile.local
-
-# Edit and fill in your tokens (see Required Tokens section below)
+# Edit ~/.profile.local and fill in your tokens (see Required Tokens section below)
 nano ~/.profile.local
 ```
 
 Restart your shell (or `source ~/.profile`) to load the env vars.
 
-### 4. Enable MCPs
+### 3. Enable MCPs
 
 Enable desired MCPs in `~/.config/opencode/opencode.jsonc` by setting `"enabled": true`.
 
-### 5. Start Using OpenAgentsControl
+### 4. Start Using
 
 ```sh
-# Start with OpenAgent (general purpose)
-opencode --agent OpenAgent
-
-# Or use OpenCoder (production code with approval gates)
-opencode --agent OpenCoder
-
-# Or use default agent (configured in opencode.jsonc)
+# Start opencode with the default agent (configured in opencode.jsonc)
 opencode
 ```
-
-### Install Zenox
-
-```sh
-bunx zenox install
-```
-
-This automatically adds `zenox` to the plugin list in `opencode.jsonc`.
 
 ## Plugins
 
@@ -209,11 +120,9 @@ This configuration uses the following plugins:
 | Plugin | Purpose |
 |--------|---------|
 | `envsitter-guard@latest` | Prevents accidental exposure of secrets in .env files |
-| `oh-my-opencode-slim` | Lightweight skill organization (configured via template) |
 | `@franlol/opencode-md-table-formatter@latest` | Auto-formats markdown tables |
 | `opencode-mem` | Memory/context persistence across sessions |
 | `opencode-redactor@0.1.1` | Redacts sensitive information from outputs |
-| `zenox` | (Optional) Additional plugin support |
 
 ---
 
@@ -353,10 +262,6 @@ The `opencode-mem` plugin uses environment variables for user profile informatio
 | `OPENCODE_MEM_USER_EMAIL` | Your email for memory attribution |
 | `OPENCODE_MEM_USER_NAME` | Your name for memory attribution |
 
-### oh-my-opencode-slim Plugin
-
-This configuration uses `oh-my-opencode-slim` — a lightweight skill organization plugin. The template is stored in `oh-my-opencode-slim.template.json`. This is distinct from the full `oh-my-opencode` plugin which includes additional features that may not be needed for all use cases.
-
 ---
 
 ## Security
@@ -365,7 +270,6 @@ This configuration uses `oh-my-opencode-slim` — a lightweight skill organizati
 - **Never commit tokens** to git
 - Use separate tokens per machine if possible (easier to revoke)
 - Plugins like `envsitter-guard` and `opencode-redactor` help prevent accidental secret exposure
-- The `oh-my-opencode-slim` plugin provides lightweight skill organization without unnecessary dependencies
 
 ---
 

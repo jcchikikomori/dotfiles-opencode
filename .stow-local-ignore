@@ -31,5 +31,6 @@ _darcs
 
 ^/\.vscode$
 ^/\.zopencode$
+^/\.omo$
 ^/templates$
 ^/wiki$
