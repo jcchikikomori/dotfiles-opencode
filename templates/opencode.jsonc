@@ -147,5 +147,13 @@
       },
       "enabled": false
     }
+  },
+  "agent": {
+    "explore": {
+      "disable": true
+    },
+    "general": {
+      "disable": true
+    }
   }
 }

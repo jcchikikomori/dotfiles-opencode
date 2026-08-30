@@ -2,6 +2,16 @@
 
 These rules apply across all AI coding agent sessions on this machine.
 
+## Orchestrator Harness (Mandatory)
+
+This machine's opencode runs **oh-my-opencode-slim** in orchestrator mode — the harness configuration is tracked in the dotfiles `opencode` submodule and stowed to `~/.config/opencode/`.
+
+- The main session is the **orchestrator**: it plans, dispatches, tracks, and reconciles specialist subagents rather than doing substantive multi-step work itself.
+- **Specialists** (@explorer, @librarian, @oracle, @designer, @fixer, @observer) return compressed, structured results — paths and line references, not file dumps — and stay inside their delegated scope.
+- The full delegation policy lives in the orchestrator prompt append: `~/.config/opencode/oh-my-opencode-slim/orchestrator_append.md`.
+- `~/.config/opencode/oh-my-opencode-slim.json` is **tracked configuration**; the dotfiles copy is canonical. `devtools-opencode omo restore` deliberately skips regeneration when that file is a symlink.
+- Config, agent, and prompt changes apply on the **next opencode run** — restart opencode to activate them immediately.
+
 ## Output Style (Mandatory)
 
 - Keep completion messages short and direct.
