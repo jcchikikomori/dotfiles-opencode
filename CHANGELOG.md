@@ -14,8 +14,9 @@ All notable changes to the OpenCode configuration and custom agents for this dot
   - 8 bundled skills installed via the installer: `simplify`, `codemap`, `clonedeps`, `deepwork`, `verification-planning`, `reflect`, `worktrees`, `oh-my-opencode-slim`
   - Tmux multiplexer enabled (`type: auto`, `layout: main-vertical`) so background agents open live panes when running `omos` inside tmux
   - Desktop companion disabled in config (`oh-my-opencode-slim.json > companion.enabled = false`) — overlays obstruct the terminal UI
+- **`devtools-opencode omo` subcommand renamed to `omos`** — restores `oh-my-opencode-slim` instead of the legacy `oh-my-opencode` plugin. Saved prefs moved from `~/.local/share/devtools-opencode/omo.prefs` to `omos.prefs`; backups moved from `~/.backups/opencode/omo/` to `omos/`. zsh completion, `stowme.sh`, `dotfiles-cleanup`, and the devtools `AGENTS.md` updated to match. Closes #263.
   - **Promoted the harness into version control** so fresh machines seed it instead of losing it to installer regeneration
-    - `.config/opencode/oh-my-opencode-slim.json` is now tracked and stowed — authoritative over the installer (`devtools-opencode` `omo restore` explicitly skips when the symlink is present)
+    - `.config/opencode/oh-my-opencode-slim.json` is now tracked and stowed — authoritative over the installer (`devtools-opencode` `omos restore` explicitly skips when the symlink is present)
     - `.config/opencode/oh-my-opencode-slim/orchestrator_append.md` — tracked prompt append encoding the delegation discipline (routing threshold, specialist lanes, background-task rules, design handoff, verification gate)
     - `.config/opencode/AGENTS.md` gains an "Orchestrator Harness (Mandatory)" section declaring the tracked config canonical
     - `.gitignore` no longer ignores `oh-my-opencode-slim.json` (leftover from the live-only era)
