@@ -1,159 +1,157 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": true,
+  "update": "notify",
   "instructions": [
     "AGENTS.md"
   ],
-  "plugin": [
-    "envsitter-guard@latest",
-    "@franlol/opencode-md-table-formatter@latest",
-    "opencode-mem",
-    "opencode-redactor@0.1.1",
+  "plugins": [
     "oh-my-opencode-slim"
   ],
   "model": "{env:OPENCODE_MODEL}",
   "small_model": "{env:OPENCODE_SMALL_MODEL}",
-  "permission": {
-    "tool": {
-      "*": "allow"
-    },
-    "skill": {
-      "*": "allow",
-      "git": "allow"
-    },
-    "bash": {
-      "git commit *": "deny",
-      "git commit": "deny",
-      "git push *": "deny",
-      "git push": "deny",
-      "git reset --hard *": "deny",
-      "git revert *": "ask",
-      "rm -rf *": "ask",
-      "sudo *": "ask",
-      "*": "allow"
-    }
-  },
-  "provider": {
+  "lsp": true,
+  "permissions": [
+    { "action": "tool", "resource": "*", "effect": "allow" },
+    { "action": "skill", "resource": "*", "effect": "allow" },
+    { "action": "skill", "resource": "git", "effect": "allow" },
+    { "action": "bash", "resource": "git commit *", "effect": "deny" },
+    { "action": "bash", "resource": "git commit", "effect": "deny" },
+    { "action": "bash", "resource": "git push *", "effect": "deny" },
+    { "action": "bash", "resource": "git push", "effect": "deny" },
+    { "action": "bash", "resource": "git reset --hard *", "effect": "deny" },
+    { "action": "bash", "resource": "git revert *", "effect": "ask" },
+    { "action": "bash", "resource": "rm -rf *", "effect": "ask" },
+    { "action": "bash", "resource": "sudo *", "effect": "ask" },
+    { "action": "bash", "resource": "*", "effect": "allow" }
+  ],
+  "providers": {
     "github-copilot": {},
     "amazon-bedrock": {
-      "options": {
+      "settings": {
         "region": "{env:AWS_REGION}",
         "profile": "{env:AWS_PROFILE}"
       }
     }
   },
   "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "enabled": true
-    },
-    "buildkite-mcp": {
-      "type": "remote",
-      "url": "https://mcp.buildkite.com/mcp",
-      "enabled": false
-    },
-    "github-mcp": {
-      "type": "remote",
-      "url": "https://api.githubcopilot.com/mcp/",
-      "enabled": true,
-      "oauth": false,
-      "headers": {
-        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+    "servers": {
+      "context7": {
+        "type": "remote",
+        "url": "https://mcp.context7.com/mcp"
+      },
+      "buildkite-mcp": {
+        "type": "remote",
+        "url": "https://mcp.buildkite.com/mcp",
+        "disabled": true
+      },
+      "github-mcp": {
+        "type": "remote",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      },
+      "web-forager": {
+        "type": "local",
+        "command": [
+          "web-forager",
+          "serve"
+        ]
+      },
+      "camoufox": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "camoufox-mcp-server@latest"
+        ]
+      },
+      "stackoverflow-mcp": {
+        "type": "local",
+        "command": [
+          "stackoverflow-mcp"
+        ],
+        "environment": {
+          "STACK_EXCHANGE_API_KEY": "{env:STACK_EXCHANGE_API_KEY}"
+        },
+        "disabled": true
+      },
+      "framelink-figma": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "figma-developer-mcp",
+          "--stdio"
+        ],
+        "environment": {
+          "FIGMA_API_KEY": "{env:FIGMA_API_KEY}"
+        },
+        "disabled": true
+      },
+      "chrome-devtools": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "chrome-devtools-mcp@latest",
+          "--no-usage-statistics"
+        ],
+        "disabled": true
+      },
+      "atlassian-mcp": {
+        "type": "local",
+        "command": [
+          "mcp-atlassian"
+        ],
+        "environment": {
+          "JIRA_URL": "{env:JIRA_URL}",
+          "JIRA_USERNAME": "{env:JIRA_USERNAME}",
+          "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}",
+          "CONFLUENCE_URL": "{env:CONFLUENCE_URL}",
+          "CONFLUENCE_USERNAME": "{env:CONFLUENCE_USERNAME}",
+          "CONFLUENCE_API_TOKEN": "{env:CONFLUENCE_API_TOKEN}"
+        },
+        "disabled": true
+      },
+      "sonarqube-mcp": {
+        "type": "local",
+        "command": [
+          "docker",
+          "run",
+          "--pull=always",
+          "-i",
+          "--rm",
+          "-e",
+          "SONARQUBE_TOKEN",
+          "-e",
+          "SONARQUBE_URL",
+          "mcp/sonarqube"
+        ],
+        "environment": {
+          "SONARQUBE_TOKEN": "{env:SONARQUBE_TOKEN}",
+          "SONARQUBE_URL": "{env:SONARQUBE_URL}"
+        },
+        "disabled": true
+      },
+      "rea": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "rea-agents@6.4.0",
+          "mcp"
+        ]
       }
-    },
-    "web-forager": {
-      "type": "local",
-      "command": [
-        "web-forager",
-        "serve"
-      ],
-      "enabled": true
-    },
-    "camoufox": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "camoufox-mcp-server@latest"
-      ],
-      "enabled": true
-    },
-    "stackoverflow-mcp": {
-      "type": "local",
-      "command": [
-        "stackoverflow-mcp"
-      ],
-      "environment": {
-        "STACK_EXCHANGE_API_KEY": "{env:STACK_EXCHANGE_API_KEY}"
-      },
-      "enabled": false
-    },
-    "framelink-figma": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "figma-developer-mcp",
-        "--stdio"
-      ],
-      "environment": {
-        "FIGMA_API_KEY": "{env:FIGMA_API_KEY}"
-      },
-      "enabled": false
-    },
-    "chrome-devtools": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--no-usage-statistics"
-      ],
-      "enabled": false
-    },
-    "atlassian-mcp": {
-      "type": "local",
-      "command": [
-        "mcp-atlassian"
-      ],
-      "environment": {
-        "JIRA_URL": "{env:JIRA_URL}",
-        "JIRA_USERNAME": "{env:JIRA_USERNAME}",
-        "JIRA_API_TOKEN": "{env:JIRA_API_TOKEN}",
-        "CONFLUENCE_URL": "{env:CONFLUENCE_URL}",
-        "CONFLUENCE_USERNAME": "{env:CONFLUENCE_USERNAME}",
-        "CONFLUENCE_API_TOKEN": "{env:CONFLUENCE_API_TOKEN}"
-      },
-      "enabled": false
-    },
-    "sonarqube-mcp": {
-      "type": "local",
-      "command": [
-        "docker",
-        "run",
-        "--pull=always",
-        "-i",
-        "--rm",
-        "-e",
-        "SONARQUBE_TOKEN",
-        "-e",
-        "SONARQUBE_URL",
-        "mcp/sonarqube"
-      ],
-      "environment": {
-        "SONARQUBE_TOKEN": "{env:SONARQUBE_TOKEN}",
-        "SONARQUBE_URL": "{env:SONARQUBE_URL}"
-      },
-      "enabled": false
     }
   },
-  "agent": {
+  "agents": {
     "explore": {
-      "disable": true
+      "disabled": true
     },
     "general": {
-      "disable": true
+      "disabled": true
     }
   }
 }

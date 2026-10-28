@@ -30,7 +30,6 @@ _darcs
 ^/\.pre-commit-config\.yaml$
 
 ^/\.vscode$
-^/\.zopencode$
 ^/\.omo$
 ^/templates$
 ^/wiki$

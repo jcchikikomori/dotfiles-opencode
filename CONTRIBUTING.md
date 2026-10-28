@@ -9,7 +9,7 @@ Thank you for your interest in improving this configuration package.
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-change`
 3. Make your changes
-4. Test locally by stowing to `~/.config/opencode`
+4. Test locally by stowing the package into `~` (see [Local Testing](#local-testing))
 5. Commit with a clear message (see below)
 6. Open a pull request
 
@@ -27,7 +27,7 @@ Thank you for your interest in improving this configuration package.
 ```
 feat: add new MCP configuration for GitLab
 fix: correct env loading order for project-level .env
-docs: update Getting-Started wiki
+docs: update Agent-Architecture wiki
 config: add new agent permission rule
 ```
 
@@ -46,14 +46,18 @@ config: add new agent permission rule
 
 ## Local Testing
 
+The package layout is `.config/opencode/...`, so it is stowed into `~` (not `~/.config`). From the parent dotfiles repo:
+
 ```sh
 # After making changes, re-stow:
-stow opencode -t ~/.config -D
-stow opencode -t ~/.config
+cd ~/Projects/dotfiles
+stow -R -t ~ linux/opencode
 
-# Verify:
-OPENCODE_ENV_DEBUG=1 opencode
+# Verify the resolved (v2) config:
+opencode debug config
 ```
+
+`.stow-local-ignore` keeps repo-own files (`README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `templates/`, `wiki/`, `.pre-commit-config.yaml`, ...) out of the symlinks. Note that `templates/opencode.jsonc` is only copied to `~/.config/opencode/opencode.jsonc` by `devtools-opencode` when that file does not exist yet, so edit your live copy (or remove it) to test template changes.
 
 ## Questions
 

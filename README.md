@@ -1,6 +1,6 @@
 # Opencode Configuration
 
-> **Part of [jcchikikomori/.dotfiles](https://github.com/jcchikikomori/.dotfiles)** — A standalone package containing [opencode](https://opencode.ai) configuration files that are stowed to `~/.config/opencode/`.
+> **Part of [jcchikikomori/.dotfiles](https://github.com/jcchikikomori/.dotfiles)** — A standalone package containing [opencode](https://opencode.ai) configuration files that are stowed to `~/.config/opencode/`. The config targets **opencode v2** (v2.2.0 at the time of writing).
 
 [![License: AI-Restricted MIT](https://img.shields.io/badge/License-AI--Restricted%20MIT-yellow.svg)](LICENSE)
 [![dotfiles](https://img.shields.io/badge/dotfiles-jcchikikomori-blue.svg)](https://github.com/jcchikikomori/.dotfiles)
@@ -14,7 +14,7 @@ A [GNU Stow](https://www.gnu.org/software/stow/)-managed dotfiles package for Op
 - **[oh-my-opencode-slim](https://github.com/alvinunreal/oh-my-opencode-slim)** — the sole primary agent (Orchestrator) plus 6 capability-specialised agents (Oracle, Explorer, Librarian, Designer, Fixer, Observer) that it routes to. The agent model mappings, prompt append, and orchestration policy are **tracked in this submodule** so a fresh machine seeds the same harness.
 - **Workflow subagents** (PRD creation, technical design, code review, security review, etc.) loaded from the live `~/.config/opencode/agents/` directory — not committed here
 - **Skills** loaded from a nested submodule under `.config/opencode/skills/` — pulled in by `git submodule update --init --recursive`
-- **10 MCP servers** for library docs (context7), GitHub integration, browser automation (camoufox), web research (web-forager), and more
+- **11 MCP servers** for library docs (context7), GitHub integration, browser automation (camoufox), web research (web-forager), reverse engineering (rea), and more
 - **Tmux multiplexer integration** for live subagent visibility
 - **Background orchestration** via `OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS` and the omo-slim `backgroundJobs.orchestratorWake` policy
 
@@ -41,12 +41,12 @@ A [GNU Stow](https://www.gnu.org/software/stow/)-managed dotfiles package for Op
 
 | File | Purpose |
 |------|---------|
-| `templates/opencode.jsonc` | **Template** for main config (copied to `~/.config/opencode/` on install). Includes the `agent` block that disables the built-in `explore`/`general` primaries. |
+| `templates/opencode.jsonc` | **Template** for main config (v2 schema), copied to `~/.config/opencode/` on install — but only if the target file does not already exist, so an existing v1 config is never auto-upgraded (see [v2 Config Keys](#v2-config-keys)). Includes the `agents` block that sets `disabled: true` on the built-in `explore`/`general` primaries. |
 | `.config/opencode/AGENTS.md` | Global agent instructions loaded into every session. Includes the **Orchestrator Harness (Mandatory)** section that names this submodule's tracked config as authoritative. |
 | `.config/opencode/oh-my-opencode-slim.json` | **Tracked, stowed** omo-slim config — agent model mappings, `setDefaultAgent`, `backgroundJobs.orchestratorWake`, multiplexer, companion. Authoritative over the installer. |
 | `.config/opencode/oh-my-opencode-slim/orchestrator_append.md` | **Tracked prompt append** for the Orchestrator — routing threshold, specialist lanes, background-task discipline, design handoff, verification gate. |
-| `.config/opencode/tui.json` | TUI theme and plugin badge |
-| `.config/opencode/opencode-mem.jsonc` | Configuration for opencode-mem plugin |
+| `.config/opencode/cli.json` | v2 CLI/TUI config — theme and `oh-my-opencode-slim` plugin badge (replaces the v1 `tui.json`) |
+| `.config/opencode/opencode-mem.jsonc` | Configuration for the `opencode-mem` plugin — **inert**, the plugin is not enabled (see [Plugins](#plugins)) |
 | `.config/opencode/mcps.json` | Reference MCP server registry (documentation, not loaded by opencode directly) |
 | `.stow-local-ignore` | Excludes repo-own tooling from stow symlinks |
 
@@ -55,24 +55,44 @@ A [GNU Stow](https://www.gnu.org/software/stow/)-managed dotfiles package for Op
 ```text
 .config/opencode/
 ├── AGENTS.md                # Global agent instructions (stowed, tracked)
-├── tui.json                 # TUI theme + oh-my-opencode-slim badge
+├── cli.json                 # v2 CLI/TUI theme + oh-my-opencode-slim badge
 ├── opencode.jsonc           # Main config (generated from template, not stowed)
 ├── oh-my-opencode-slim.json # Agent model config (stowed, tracked — authoritative)
 ├── oh-my-opencode-slim/     # Tracked prompt appends per agent
 │   └── orchestrator_append.md
-├── opencode-mem.jsonc       # Memory plugin config
-├── mcps.json                # MCP server reference registry
+├── opencode-mem.jsonc       # Memory plugin config (inert — plugin not enabled)
+├── mcps.json                # MCP server reference registry (documentation only)
 ├── agents/                  # Workflow subagents (live-only, not committed)
 ├── skills/                  # Git submodule → bundled skills (init required)
-├── plugins/                 # Custom plugin hooks
+├── plugins/                 # Auto-scanned by opencode — currently empty
+├── plugins.disabled/        # Parked v1-era plugins (outside the scan path)
 │   └── quality.ts
 ├── memory_data/             # Memory storage (live-only)
-├── bun.lock / package-lock.json
-└── package.json
+├── bun.lock
+└── package.json             # Pins @opencode-ai/plugin (plugin SDK types)
 
 templates/
 └── opencode.jsonc          # Config template
 ```
+
+### v2 Config Keys
+
+`templates/opencode.jsonc` uses the opencode v2 schema (`https://opencode.ai/config.json`). The v1 keys still parse but are marked deprecated, so this is what changed:
+
+| v1 | v2 |
+|----|----|
+| `autoupdate: true` | `update: "notify"` (`disable` \| `notify` \| `auto`) |
+| `plugin: [...]` | `plugins: [...]` |
+| `permission: {tool, skill, bash}` | `permissions: [{action, resource, effect}]` — flat array, `effect` is `allow` \| `deny` \| `ask` |
+| `provider: {...}` / `provider.<id>.options` | `providers: {...}` / `providers.<id>.settings` |
+| `mcp: { "<name>": {...} }` | `mcp: { "servers": { "<name>": {...} } }` |
+| `mcp.<name>.enabled: false` | `mcp.servers.<name>.disabled: true` (enabled = omit the key) |
+| `agent.<n>.disable: true` | `agents.<n>.disabled: true` |
+| `tui.json` (`plugin`, string `theme`) | `cli.json` (`plugins`, `theme: {"name": "system"}`, schema `https://opencode.ai/v2/cli.json`) |
+
+`lsp` (boolean), `instructions`, `model`, and `small_model` are unchanged.
+
+> **Upgrading an existing machine:** `devtools-opencode` only copies the template when `~/.config/opencode/opencode.jsonc` does not exist yet, so a v1 config left in place is never converted automatically. Move the old file aside (or merge by hand) and let the template be copied again. Use `opencode debug config` to inspect the resolved config.
 
 ---
 
@@ -153,9 +173,9 @@ bunx oh-my-opencode-slim@latest install --no-tui --skills=yes \
 ```
 
 The installer handles:
-- Adding the plugin to `opencode.jsonc`
-- Disabling default `explore`/`general` agents
-- Enabling LSP integration
+- Adding the plugin to the `plugins` array in `opencode.jsonc`
+- Disabling default `explore`/`general` agents (via `agents.<name>.disabled`)
+- Enabling LSP integration (`lsp: true`)
 - Installing 8 bundled skills (codemap, deepwork, simplify, etc.)
 
 The agent model mappings and orchestration policy (`oh-my-opencode-slim.json`) are **tracked in this submodule and stowed as a symlink** — they are authoritative over the installer. Re-running the installer after stow will not regenerate them, because the symlink is recognised: the parent repo's `devtools-opencode omo restore` step explicitly skips when the symlink already exists. A manual installer run (without the symlink guard) would clobber it — back up first if you must.
@@ -171,7 +191,7 @@ export OPENCODE_ENABLE_EXA=1
 
 # Required: model selection
 export OPENCODE_MODEL="opencode/qwen3.5-plus"
-export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.6"
+export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.7-code"
 
 # Optional: MCP tokens
 export GITHUB_PERSONAL_ACCESS_TOKEN="<token>"
@@ -185,7 +205,7 @@ export FIGMA_API_KEY="<key>"
 ```sh
 source ~/.profile.local
 opencode auth login        # Authenticate with providers
-opencode models --refresh  # Refresh model list
+opencode models            # List available models (v2 has no --refresh flag)
 opencode                   # Or: omos (in tmux)
 ```
 
@@ -206,18 +226,29 @@ All omo-slim agents (Orchestrator, Oracle, Explorer, Librarian, Designer, Fixer,
 | Plugin | Purpose |
 |--------|---------|
 | `oh-my-opencode-slim` | Agent orchestration with 7 specialized agents, background tasks, and tmux multiplexer |
-| `envsitter-guard@latest` | Prevents accidental exposure of secrets in .env files |
-| `@franlol/opencode-md-table-formatter@latest` | Auto-formats markdown tables |
-| `opencode-mem` | Memory/context persistence across sessions |
-| `opencode-redactor@0.1.1` | Redacts sensitive information from outputs |
+
+That is the only plugin enabled under opencode v2.
+
+> **Why the others are gone:** v2 changed the plugin contract — a plugin must now `export default { id, setup }` instead of exporting a named factory that returns a v1 hook object. The v2.2.0 binary contains no trace of the old hook names (`tool.execute.after`, `tool.execute.before`, `chat.params`, `experimental.chat.system.transform`), so there is no compatibility bridge. Every other plugin here was still on the v1 API and failed to load on every start:
+>
+> | Dropped | Reason |
+> |---------|--------|
+> | `opencode-redactor@0.1.1` | v1 API, one published version, no v2 release |
+> | `@franlol/opencode-md-table-formatter@latest` | v1 API, no v2 release |
+> | `opencode-mem` | ships a v2 entry point but fails at runtime with `TypeError: not a valid backend` |
+> | `envsitter-guard` | the resolved version (`0.0.4`) exports a bare function — the v1 shape |
+>
+> `opencode-redactor` provided secret masking; that capability is currently **not** provided and needs either a v2 release or a local reimplementation.
 
 ### Custom Plugin Hooks
 
-A TypeScript plugin in `.config/opencode/plugins/`:
+Custom plugins live in `.config/opencode/plugins/` — OpenCode auto-scans that directory on every start, independently of the `plugins` array in `opencode.jsonc`.
 
-- **`quality.ts`** — Runs `prettier --write` after every file edit, warns if tests fail
+- **`plugins.disabled/`** — holds the v1-era plugins that were parked rather than deleted: `quality.ts` (runs `prettier --write` after every file edit, warns if tests fail) plus `opencode-claude-attribution.ts`, `opencode-commit-guard.ts`, `opencode-memory-guard.ts` and `opencode-wandavision.ts`.
 
-> **Note:** the `git-commit-guard.ts` plugin that used to block `git commit` from opencode sessions (GPG signing requires a TTY) was retired. The bash permissions deny list — which still blocks `git commit`, `git push`, and `git reset --hard` from opencode sessions — covers the same concern.
+They are inert: the directory is outside OpenCode's scan path. Move a file back into `plugins/` to re-enable it, once it has been ported to the v2 contract (`export default { id, setup }`, with `ctx.tool.hook("execute.before" | "execute.after", cb)` replacing the v1 hook object).
+
+> **Note:** `quality.ts` is tracked in this repo; the other four existed only in the dotfiles checkout and were never committed here.
 
 ---
 
@@ -235,8 +266,11 @@ A TypeScript plugin in `.config/opencode/plugins/`:
 | `chrome-devtools` | no | **None** | Local: `npx -y chrome-devtools-mcp@latest` |
 | `atlassian-mcp` | no | `JIRA_URL`, `JIRA_USERNAME`, `JIRA_API_TOKEN`, `CONFLUENCE_URL`, `CONFLUENCE_USERNAME`, `CONFLUENCE_API_TOKEN` | [Atlassian API Tokens](https://id.atlassian.com/manage-profile/security/api-tokens) |
 | `sonarqube-mcp` | no | `SONARQUBE_TOKEN`, `SONARQUBE_URL` | SonarQube → My Account → Security |
+| `rea` | **yes** | **None** | Local: `npx -y rea-agents@6.4.0 mcp` |
 
-Enable disabled MCPs by setting `"enabled": true` in `~/.config/opencode/opencode.jsonc`.
+The servers live under `mcp.servers` in `~/.config/opencode/opencode.jsonc`. Enable a disabled MCP by **removing** its `"disabled": true` key (or setting it to `false`). `rea` (reverse engineering via `npx -y rea-agents mcp`, no env vars) is enabled by default.
+
+`.config/opencode/mcps.json` is a documentation registry consumed by `devtools-opencode` (Claude-Code-style `mcpServers` shape); opencode itself does not read it.
 
 ---
 
@@ -247,7 +281,7 @@ Models use **environment variables** for multi-environment support:
 ```bash
 # ~/.profile.local
 export OPENCODE_MODEL="opencode/qwen3.5-plus"
-export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.6"
+export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.7-code"
 
 # Or for AWS Bedrock:
 export OPENCODE_MODEL="amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0"
@@ -260,7 +294,7 @@ export AWS_PROFILE="your-aws-profile"
 | Provider | Prefix | Example |
 |----------|--------|---------|
 | OpenCode (built-in) | `opencode/` | `opencode/qwen3.5-plus` |
-| OpenCode Go | `opencode-go/` | `opencode-go/kimi-k2.6` |
+| OpenCode Go | `opencode-go/` | `opencode-go/kimi-k2.7-code` |
 | Amazon Bedrock | `amazon-bedrock/` | `amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0` |
 | GitHub Copilot | `github-copilot/` | `github-copilot/claude-sonnet-4` |
 | Ollama | `ollama/` | `ollama/qwen2.5-coder:32b` |
@@ -273,14 +307,14 @@ Each omo-slim agent can use a different model. The configuration lives in `~/.co
 | Agent | Default (opencode-go preset) | Role |
 |-------|------------------------------|------|
 | Orchestrator | `opencode-go/minimax-m3` (thinking) | Plans and delegates work |
-| Oracle | `opencode-go/qwen3.7-max` (max) | Architecture, debugging, code review |
-| Explorer | `opencode-go/deepseek-v4-flash` (high) | Codebase reconnaissance |
-| Librarian | `opencode-go/deepseek-v4-flash` (high) | Documentation and library research |
+| Oracle | `opencode-go/qwen3.8-max` (max) | Architecture, debugging, code review |
+| Explorer | `opencode-go/deepseek-v4.1-flash` (high) | Codebase reconnaissance |
+| Librarian | `opencode-go/deepseek-v4.1-flash` (high) | Documentation and library research |
 | Designer | `opencode-go/kimi-k2.7-code` | UI/UX implementation |
-| Fixer | `opencode-go/deepseek-v4-flash` (high) | Fast code changes |
+| Fixer | `opencode-go/deepseek-v4.1-flash` (high) | Fast code changes |
 | Observer | `opencode-go/mimo-v2.5` | Image/visual file analysis |
 
-Switch the entire team's models at runtime with `/preset` in the TUI.
+The config also defines an `openai` preset (`openai/gpt-5.6-*`), but those ids are unverified on this machine (the `openai` provider is not authenticated), so treat the table above as the working set. Switch the entire team's models at runtime with `/preset` in the TUI.
 
 ---
 
@@ -293,29 +327,33 @@ All environment variables (tokens, model config, feature flags) go in `~/.profil
 export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
 export OPENCODE_ENABLE_EXA=1
 export OPENCODE_MODEL="opencode/qwen3.5-plus"
-export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.6"
+export OPENCODE_SMALL_MODEL="opencode-go/kimi-k2.7-code"
 export GITHUB_PERSONAL_ACCESS_TOKEN="<token>"
 ```
 
-For project-specific overrides, create `.opencode/.env` in your project root.
+The old `dotfiles-opencode-env` wrapper (which sourced a project-level `.opencode/.env`) was retired together with the setup wizard, so I wouldn't rely on `.opencode/.env` being loaded automatically — export project-specific variables from your shell instead.
 
 ---
 
 ## Per-Project Configuration
 
-Override the global config by placing `opencode.jsonc` in your project:
+Override the global config by placing an opencode config file in your project root:
 
 ```text
 your-project/
-├── opencode.jsonc          # option A: project root
-└── .opencode/
-    └── opencode.jsonc      # option B: hidden directory
+├── opencode.jsonc          # project root
+└── .opencode/              # optional: extra per-project config directory
 ```
 
-OpenCode merges configs in this order (last wins):
+OpenCode v2 merges configs in this order (last wins):
 
-1. `~/.config/opencode/opencode.jsonc` — global
-2. `<project-root>/opencode.jsonc` or `<project-root>/.opencode/opencode.jsonc` — project-level
+1. Remote — `.well-known/opencode`
+2. Global — `~/.config/opencode/opencode.json` (this repo uses `opencode.jsonc`)
+3. Custom — the file named by `OPENCODE_CONFIG`
+4. Project — `<project-root>/opencode.json`
+5. `.opencode` directories
+6. Inline — `OPENCODE_CONFIG_CONTENT`
+7. Managed
 
 ### Minimal Project Config Example
 
@@ -326,14 +364,24 @@ OpenCode merges configs in this order (last wins):
     "AGENTS.md"
   ],
   "mcp": {
-    "sonarqube-mcp": {
-      "enabled": true
+    "servers": {
+      "sonarqube-mcp": {
+        "type": "local",
+        "command": ["docker", "run", "--pull=always", "-i", "--rm",
+                    "-e", "SONARQUBE_TOKEN", "-e", "SONARQUBE_URL", "mcp/sonarqube"],
+        "environment": {
+          "SONARQUBE_TOKEN": "{env:SONARQUBE_TOKEN}",
+          "SONARQUBE_URL": "{env:SONARQUBE_URL}"
+        }
+      }
     }
   }
 }
 ```
 
 ### opencode-mem Plugin
+
+> **Disabled.** `opencode-mem` ships a v2 entry point but fails to load on opencode v2.2.0 with `TypeError: not a valid backend`, so it was removed from the `plugins` array. Its config file is kept in place but inert.
 
 The `opencode-mem` plugin uses environment variables for user profile information:
 
@@ -383,7 +431,7 @@ Then trigger delegated work — subagent panes appear automatically.
 - Use separate tokens per machine if possible (easier to revoke)
 - `envsitter-guard` blocks accidental secret exposure in .env files
 - `opencode-redactor` strips sensitive fields from outputs
-- Bash permissions deny `git commit`, `git push`, and `git reset --hard` (the TTY-less session concern that the retired `git-commit-guard.ts` plugin used to cover is now handled by this permission deny list)
+- The `permissions` array denies `git commit`, `git push`, and `git reset --hard` (covers the GPG-needs-a-TTY concern the retired `git-commit-guard.ts` plugin used to handle)
 
 ---
 

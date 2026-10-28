@@ -199,6 +199,17 @@
       "installMethod": "npx",
       "categories": ["markdown", "linting", "code-quality", "validation"],
       "notes": "Provides lint_markdown, fix_markdown, and get_configuration tools. Supports all 52 markdownlint rules with 30 auto-fixable rules. Based on CommonMark and GitHub Flavored Markdown standards."
+    },
+    "rea": {
+      "name": "rea",
+      "description": "REA MCP for reverse engineering native, managed, Electron/JavaScript, packaged, firmware, and browser targets",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "rea-agents@6.4.0", "mcp"],
+      "env": [],
+      "installMethod": "npx",
+      "categories": ["reverse-engineering", "analysis"],
+      "notes": "Pinned to rea-agents@6.4.0. Runs locally over stdio via npx."
     }
   },
   "categories": {
@@ -226,7 +237,8 @@
     "conversion": "File format conversion tools",
     "document-processing": "Document processing and manipulation tools",
     "linting": "Code and content linting tools",
-    "validation": "Validation and compliance checking tools"
+    "validation": "Validation and compliance checking tools",
+    "reverse-engineering": "Reverse engineering and artifact inspection tools"
   },
   "metadata": {
     "version": "1.0.0",
